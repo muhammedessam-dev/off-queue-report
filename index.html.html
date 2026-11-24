@@ -1,0 +1,1350 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>OFF Queue Performance Report — Standalone Edition</title>
+<meta name="description" content="OFF Queue agent performance report in one file: AHT · C-SAT · ABS · Utilization · Quality · QC, with Top Talents, link search, Excel import and Admin / Team Leader / Agent roles." />
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js" onerror="window.__XLSX_FAILED=true"></script>
+<style>
+:root{
+  --ink:#05070e; --ink2:#080d1a; --surface:#0e1526; --surface2:#141d33;
+  --line:rgba(255,255,255,.08); --line2:rgba(255,255,255,.16);
+  --mint:#00e5a8; --azure:#4d9dff; --amber:#ffb627; --rose:#ff4d6d;
+  --violet:#8b7bff; --lime:#b8f02d; --tangerine:#ff8a3d;
+  --fog:#93a4c4; --chalk:#e9eefb;
+  --sans:Inter,"Segoe UI",system-ui,-apple-system,Roboto,Helvetica,Arial,sans-serif;
+  --mono:"Space Grotesk","Cairo",ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--ink)}
+body{color:var(--chalk);font-family:var(--sans);-webkit-font-smoothing:antialiased;overflow-x:hidden;min-height:100vh}
+.bg,.grid,.grain{position:fixed;inset:0;pointer-events:none;z-index:0}
+.bg{background:
+  radial-gradient(1100px 620px at 88% -10%,rgba(0,229,168,.16),transparent 62%),
+  radial-gradient(900px 520px at 8% 4%,rgba(77,157,255,.15),transparent 60%),
+  radial-gradient(760px 520px at 60% 108%,rgba(139,123,255,.14),transparent 65%),
+  linear-gradient(180deg,#05070e,#070c17 45%,#05070e)}
+.grid{opacity:.35;background-image:linear-gradient(to right,rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(to bottom,rgba(255,255,255,.045) 1px,transparent 1px);background-size:64px 64px;-webkit-mask-image:radial-gradient(circle at 50% 18%,#000,transparent 78%);mask-image:radial-gradient(circle at 50% 18%,#000,transparent 78%)}
+.grain{inset:-50%;opacity:.05;animation:grain 8s steps(6) infinite;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='220' height='220'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/></filter><rect width='220' height='220' filter='url(%23n)' opacity='0.55'/></svg>")}
+@keyframes grain{0%{transform:translate(0,0)}20%{transform:translate(-3%,2%)}40%{transform:translate(2%,-3%)}60%{transform:translate(-2%,-2%)}80%{transform:translate(3%,1%)}100%{transform:translate(0,0)}}
+#app,#drawerRoot,#toastRoot{position:relative;z-index:5}
+
+*{scrollbar-width:thin;scrollbar-color:rgba(0,229,168,.55) rgba(255,255,255,.05)}
+*::-webkit-scrollbar{width:10px;height:10px}
+*::-webkit-scrollbar-track{background:rgba(255,255,255,.04);border-radius:99px}
+*::-webkit-scrollbar-thumb{background:linear-gradient(180deg,rgba(0,229,168,.85),rgba(77,157,255,.85));border-radius:99px;border:2px solid transparent;background-clip:padding-box}
+*::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,#00e5a8,#4d9dff);background-clip:padding-box}
+
+.panel{background:linear-gradient(155deg,rgba(20,29,51,.82),rgba(10,16,30,.86));border:1px solid var(--line);border-radius:20px;backdrop-filter:blur(14px);box-shadow:0 24px 60px rgba(3,6,14,.55)}
+.tight{background:rgba(12,18,33,.72);border:1px solid var(--line);border-radius:16px}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.hair{height:1px;background-image:linear-gradient(90deg,transparent,rgba(255,255,255,.16),transparent)}
+@keyframes rise{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+@keyframes pop{0%{opacity:0;transform:scale(.94)}70%{transform:scale(1.015)}100%{opacity:1;transform:scale(1)}}
+@keyframes slide{from{opacity:0;transform:translateX(-34px)}to{opacity:1;transform:none}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.45;transform:scale(.8)}}
+.rise{animation:rise .55s cubic-bezier(.22,1,.36,1) both}
+.pop{animation:pop .35s cubic-bezier(.22,1,.36,1) both}
+.slide{animation:slide .4s cubic-bezier(.22,1,.36,1) both}
+.fade{animation:fade .45s ease both}
+.dot{width:7px;height:7px;border-radius:99px;background:var(--mint);display:inline-block;animation:pulse 1.8s ease-in-out infinite}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.001ms!important;transition-duration:.001ms!important}}
+
+button,input,select{font-family:inherit;color:inherit}
+button{cursor:pointer;border:0;background:none}
+.btn{border:1px solid var(--line);background:rgba(255,255,255,.04);border-radius:12px;padding:9px 14px;font-size:12.5px;font-weight:600;color:var(--fog);transition:.2s}
+.btn:hover{color:var(--chalk);border-color:var(--line2);background:rgba(255,255,255,.08)}
+.btn.primary{background:linear-gradient(270deg,var(--mint),var(--azure));color:#05070e;font-weight:800;border:0}
+.btn.primary:hover{filter:brightness(1.1)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.inp{width:100%;border-radius:12px;border:1px solid var(--line);background:rgba(0,0,0,.32);padding:10px 13px;font-size:13px;outline:none;transition:.2s}
+.inp:focus{border-color:rgba(0,229,168,.6);box-shadow:0 0 0 3px rgba(0,229,168,.12)}
+input::placeholder{color:rgba(147,164,196,.6)}
+select.inp option{background:#0e1526;color:#e9eefb}
+:focus-visible{outline:2px solid rgba(0,229,168,.75);outline-offset:2px}
+
+/* topbar */
+.topbar{position:fixed;inset-inline:0;top:0;height:64px;z-index:40;border-bottom:1px solid var(--line);background:rgba(5,7,14,.82);backdrop-filter:blur(18px)}
+.topbar .inner{max-width:1600px;margin:0 auto;height:100%;display:flex;align-items:center;gap:14px;padding:0 18px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:inherit}
+.mark{width:36px;height:36px;border-radius:12px;display:grid;place-items:center;font-weight:900;font-size:13px;color:#05070e;background:linear-gradient(135deg,var(--mint),var(--azure))}
+.nav{display:flex;gap:4px;padding:4px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.03)}
+.nav button{padding:6px 12px;border-radius:9px;font-size:12.5px;font-weight:700;color:var(--fog);transition:.2s}
+.nav button:hover{background:rgba(255,255,255,.06);color:var(--chalk)}
+.nav button.on{background:rgba(0,229,168,.15);color:var(--mint)}
+.userchip{display:flex;align-items:center;gap:9px;border:1px solid var(--line);border-radius:12px;padding:6px 11px;background:rgba(255,255,255,.03)}
+
+/* layout */
+.wrap{max-width:1600px;margin:0 auto;padding:88px 18px 90px}
+.kicker{font-size:10.5px;font-weight:800;letter-spacing:.32em;text-transform:uppercase;color:var(--mint)}
+h1{margin:8px 0 0;font-size:clamp(26px,4vw,40px);font-weight:800;line-height:1.15}
+h2{margin:4px 0 0;font-size:17px;font-weight:800}
+.sub{margin:6px 0 0;font-size:12.5px;color:var(--fog);line-height:1.75}
+.grad{background:linear-gradient(270deg,var(--mint),var(--azure) 45%,var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
+.grid2{display:grid;gap:16px}
+@media(min-width:1000px){.heroGrid{grid-template-columns:1.6fr 1fr}.anaGrid{grid-template-columns:1.5fr 1fr}.mgGrid{grid-template-columns:1fr 1.35fr}}
+.cards{display:grid;gap:14px;grid-template-columns:1fr}
+@media(min-width:640px){.cards{grid-template-columns:repeat(2,1fr)}}
+@media(min-width:1200px){.cards{grid-template-columns:repeat(3,1fr)}}
+
+.chip{border-radius:9px;padding:6px 10px;font-size:11.5px;font-weight:700;background:rgba(255,255,255,.04);color:var(--fog);transition:.2s}
+.chip:hover{background:rgba(255,255,255,.09);color:var(--chalk)}
+.toolbar{position:sticky;top:70px;z-index:30;display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:13px;margin-top:18px}
+.searchWrap{position:relative;flex:1;min-width:230px}
+.searchWrap .ic{position:absolute;inset-inline-end:12px;top:0;bottom:0;display:grid;place-items:center;color:var(--fog);pointer-events:none}
+.searchWrap input{padding-inline-end:36px;padding-inline-start:64px}
+.searchWrap .clr{position:absolute;inset-inline-start:8px;top:50%;transform:translateY(-50%);font-size:11px;color:var(--fog);padding:5px 7px;border-radius:8px}
+.searchWrap .clr:hover{color:var(--rose)}
+
+table{border-collapse:collapse;width:100%}
+th,td{text-align:left}
+thead th{position:sticky;top:0;z-index:2;background:rgba(20,29,51,.97);backdrop-filter:blur(8px);padding:11px;font-size:11.5px;color:var(--fog);font-weight:700;white-space:nowrap}
+tbody td{padding:11px;border-top:1px solid rgba(255,255,255,.06);font-size:12.5px}
+tbody tr{transition:background .18s;cursor:pointer}
+tbody tr:hover{background:rgba(255,255,255,.05)}
+.scroller{border:1px solid var(--line);border-radius:14px;overflow:auto;margin-top:14px}
+
+.talent{display:flex;align-items:center;gap:10px;width:100%;padding:9px;border:1px solid var(--line);border-radius:12px;background:rgba(255,255,255,.02);position:relative;overflow:hidden;transition:.2s;text-align:left}
+.talent:hover{border-color:var(--line2);background:rgba(255,255,255,.06)}
+.talent .fill{position:absolute;inset-block:0;inset-inline-end:0;opacity:.14}
+.rank{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-weight:900;font-size:13px;position:relative;flex:none}
+.bar{height:6px;border-radius:99px;background:rgba(255,255,255,.08);overflow:hidden;position:relative}
+.bar>i{position:absolute;inset-block:0;inset-inline-end:0;border-radius:99px;transition:width .7s cubic-bezier(.22,1,.36,1)}
+.bar .tgt{position:absolute;inset-block:0;width:2px;background:rgba(255,255,255,.75)}
+
+.drawerBack{position:fixed;inset:0;background:rgba(0,0,0,.66);backdrop-filter:blur(4px);z-index:50;animation:fade .3s ease both}
+.drawer{position:fixed;inset-block:0;inset-inline-start:auto;inset-inline-end:0;width:min(520px,100%);z-index:51;display:flex;flex-direction:column;border-inline-start:1px solid var(--line);background:linear-gradient(160deg,rgba(20,29,51,.97),rgba(8,13,26,.985));box-shadow:0 0 80px rgba(0,0,0,.6)}
+.drawer .body{flex:1;overflow:auto;padding:18px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:70;border-radius:12px;padding:12px 20px;font-size:13px;font-weight:700;background:rgba(20,29,51,.96);border:1px solid rgba(0,229,168,.45);color:var(--mint);backdrop-filter:blur(8px);box-shadow:0 18px 50px rgba(0,0,0,.5)}
+.toast.bad{border-color:rgba(255,77,109,.5);color:var(--rose)}
+.drop{border:2px dashed rgba(255,255,255,.16);border-radius:18px;padding:30px;text-align:center;background:rgba(255,255,255,.02);transition:.2s;cursor:pointer}
+.drop.on{border-color:var(--mint);background:rgba(0,229,168,.07)}
+.pill{border-radius:7px;padding:3px 7px;font-size:10.5px;font-weight:800}
+.mini{font-size:10.5px;color:var(--fog)}
+.flexb{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.tipline{font-size:11px;color:var(--fog);margin-top:8px}
+@media(max-width:980px){.brandtxt{display:none}}
+@media(max-width:620px){.utxt{display:none}.wrap{padding:84px 12px 80px}.toolbar{top:66px}}
+
+/* ---- layout polish (English edition) ---- */
+body{line-height:1.5}
+h1,h2{letter-spacing:-.02em;line-height:1.2}
+.sub,.mini{line-height:1.55}
+.panel{border-radius:18px}
+th{position:sticky;top:0;z-index:1;background:var(--surface2)}
+.scroller{overflow-x:auto}
+button,.btn,.chip{font-family:inherit}
+@media (max-width:720px){
+  .flexb{flex-direction:column;align-items:flex-start;gap:12px}
+  h1{font-size:26px}
+}
+</style>
+</head>
+<body>
+<div class="bg"></div><div class="grid"></div><div class="grain"></div>
+<div id="app"></div>
+<div id="drawerRoot"></div>
+<div id="toastRoot"></div>
+
+<script>
+"use strict";
+/* ============================================================
+   OFF Queue Performance Report — Standalone Edition
+   Local storage (localStorage) · No server · Opens by double-click
+   ============================================================ */
+
+/* ---------- 1. Metrics & targets ---------- */
+var METRICS = [
+  {key:"aht",label:"AHT",ar:"Average handle time",target:900,better:"lower",unit:"time",color:"#4D9DFF",icon:"⏱",hint:"Target 0:15:00 — lower is better"},
+  {key:"csat",label:"C-SAT",ar:"Customer satisfaction",target:90,better:"higher",unit:"percent",color:"#00E5A8",icon:"★",hint:"Target 90% — higher is better"},
+  {key:"abs",label:"ABS",ar:"Absenteeism",target:6,better:"lower",unit:"percent",color:"#FF4D6D",icon:"⚑",hint:"Target 6.00% — lower is better"},
+  {key:"utilization",label:"Utilization",ar:"Utilization rate",target:85,better:"higher",unit:"percent",color:"#FFB627",icon:"⚡",hint:"Target 85.00% — higher is better"},
+  {key:"quality",label:"Quality",ar:"Performance quality",target:90,better:"higher",unit:"percent",color:"#8B7BFF",icon:"◆",hint:"Target 90% — higher is better"},
+  {key:"qc",label:"QC",ar:"QC auditor score",target:85,better:"higher",unit:"percent",color:"#B8F02D",icon:"✓",hint:"Target 85% — higher is better"}
+];
+var M = {}; METRICS.forEach(function(m){M[m.key]=m;});
+var TEAM_COLORS = ["#00E5A8","#4D9DFF","#FFB627","#FF4D6D","#8B7BFF","#B8F02D","#FF8A3D"];
+
+/* ---------- 2. Helpers ---------- */
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c];});}
+function $(id){return document.getElementById(id);}
+function pad2(n){return (n<10?"0":"")+n;}
+function fmtTime(sec){sec=Math.max(0,Math.round(sec||0));var h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),s=sec%60;return h+":"+pad2(m)+":"+pad2(s);}
+function fmt(key,v){var d=M[key];if(v==null||!isFinite(v))return "—";if(d.unit==="time")return fmtTime(v);if(key==="abs"||key==="utilization")return v.toFixed(2)+"%";return v.toFixed(1)+"%";}
+function delta(key,v){var d=M[key],df=v-d.target,sign=df>0?"+":(df<0?"−":"±"),a=Math.abs(df);
+  return sign+(d.unit==="time"?fmtTime(a):a.toFixed(key==="abs"||key==="utilization"?2:1)+"%");}
+function ach(key,v){var d=M[key];if(!isFinite(v)||v<=0)return 0;var r=d.better==="higher"?(v/d.target)*100:(d.target/v)*100;return Math.max(0,Math.min(140,r));}
+function meets(key,v){return M[key].better==="higher"?v>=M[key].target:v<=M[key].target;}
+function score(s){var t=0;METRICS.forEach(function(m){t+=ach(m.key,s[m.key]);});return t/METRICS.length;}
+function band(sc){if(sc>=108)return{label:"Exceptional",color:"#00e5a8"};if(sc>=100)return{label:"On target",color:"#b8f02d"};if(sc>=92)return{label:"Near target",color:"#ffb627"};return{label:"Needs an improvement plan",color:"#ff4d6d"};}
+function heat(a){return a>=108?"#00e5a8":a>=100?"#b8f02d":a>=92?"#ffb627":"#ff4d6d";}
+function avg(list){var o={aht:0,csat:0,abs:0,utilization:0,quality:0,qc:0,calls:0};if(!list.length)return o;
+  list.forEach(function(s){METRICS.forEach(function(m){o[m.key]+=s[m.key]||0;});o.calls+=s.calls||0;});
+  METRICS.forEach(function(m){o[m.key]/=list.length;});return o;}
+function norm(t){return String(t||"").toLowerCase().replace(/[أإآ]/g,"ا").replace(/ى/g,"ي").replace(/ة/g,"ه").replace(/[ًٌٍَُِّْـ]/g,"").replace(/\s+/g," ").trim();}
+function nfmt(n){return Number(n||0).toLocaleString("en-US");}
+function periodLabel(p){var m=/^(\d{4})-W(\d{2})$/.exec(p);return m?("Week "+m[2]+" · "+m[1]):p;}
+function periodShort(p){var m=/^(\d{4})-W(\d{2})$/.exec(p);return m?("W"+m[2]):p;}
+function rid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
+function randPass(){var w=["Queue","Falcon","Nova","Orion","Titan","Vega","Agent"];return w[Math.floor(Math.random()*w.length)]+"@"+Math.floor(1000+Math.random()*8999);}
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function toast(msg,bad){var r=$("toastRoot");r.innerHTML='<div class="toast pop'+(bad?" bad":"")+'">'+esc(msg)+"</div>";clearTimeout(window.__tt);window.__tt=setTimeout(function(){r.innerHTML="";},3000);}
+function download(name,content,type){var blob=content instanceof Blob?content:new Blob(["\ufeff"+content],{type:type||"text/csv;charset=utf-8"});
+  var url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=name;document.body.appendChild(a);a.click();
+  setTimeout(function(){URL.revokeObjectURL(url);a.remove();},400);}
+
+/* ---------- 3. Data ---------- */
+var KEY="offq.standalone.v1";
+var DB=null;
+
+var TEAM_SEED=[
+  {codename:"Falcon",name:"Falcon Team",color:"#00E5A8",leader:"Mahmoud Abdelrahman",username:"m.abdelrahman"},
+  {codename:"Nova",name:"Nova Team",color:"#4D9DFF",leader:"Sara Fathy",username:"s.fathy"},
+  {codename:"Orion",name:"Orion Team",color:"#FFB627",leader:"Hany Gamal",username:"h.gamal"},
+  {codename:"Titan",name:"Titan Team",color:"#FF4D6D",leader:"Rana Samir",username:"r.samir"},
+  {codename:"Vega",name:"Vega Team",color:"#8B7BFF",leader:"Karim Hassan",username:"k.hassan"}
+];
+var NAMES=["Ahmed Sayed Hassan","Mona Khaled Ibrahim","Youssef Emad Eldin","Nourhan Mostafa","Abdullah Shaaban","Mariam Ashraf","Tarek Monir","Heba Allah Saeed","Amr Diab Ramadan","Salma Wagdy","Karim Essam","Dina Hosny","Mohamed Talaat","Shaimaa Ragab","Islam Fathy","Rania Medhat","Ziad El Hosary","Asmaa Adel","Bilal Nabil","Ghada Yousry","Hassan El Sherbiny","May Abdel Latif","Walid Saber","Yasmine Raafat","Mostafa Kandil","Noha El Sayed","Sherif El Hamrawy","Iman Zaki","Anas Magdy","Lujain Alaa","Hazem El Behnasy","Fatma El Zahraa","Sameh Rafik","Gana El Morsy","Khaled Mansour","Doaa Samir","Majed El Ashry","Rawan Ayman","Tamer Lotfy","Sundus Helmy","Adel Roushdy","Hadeer Shawky","Marwan Kadry","Amira Nagy"];
+var SHIFTS=["Morning","Evening","Night"];
+
+function recentPeriods(n){
+  var out=[],now=new Date();
+  for(var i=n-1;i>=0;i--){
+    var d=new Date(now.getTime()-i*7*864e5);
+    var t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
+    var day=t.getUTCDay()||7;t.setUTCDate(t.getUTCDate()+4-day);
+    var ys=Date.UTC(t.getUTCFullYear(),0,1);
+    var w=Math.ceil(((t.getTime()-ys)/864e5+1)/7);
+    var k=t.getUTCFullYear()+"-W"+pad2(w);
+    if(out.indexOf(k)<0)out.push(k);
+  }
+  return out;
+}
+
+function seed(){
+  var rnd=mulberry32(20260214),periods=recentPeriods(6);
+  var db={users:[],teams:[],agents:[],metrics:[],uploads:[],seq:1};
+  function nid(){return db.seq++;}
+  db.users.push({id:nid(),username:"admin",password:"Admin@123",role:"admin",fullName:"Operations Manager — Admin",teamId:null,agentId:null,active:true,lastLogin:null});
+  var perTeam=[9,9,9,9,8],nameI=0,code=1042;
+  TEAM_SEED.forEach(function(t,ti){
+    var uid=nid();
+    db.users.push({id:uid,username:t.username,password:"Leader@123",role:"leader",fullName:t.leader,teamId:null,agentId:null,active:true,lastLogin:null});
+    var tid=nid();
+    db.teams.push({id:tid,name:t.name,codename:t.codename,color:t.color,leaderUserId:uid});
+    db.users.forEach(function(u){if(u.id===uid)u.teamId=tid;});
+    for(var i=0;i<perTeam[ti];i++){
+      var aid=nid();
+      db.agents.push({id:aid,name:NAMES[nameI%NAMES.length],code:"AG-"+(code++),teamId:tid,leaderUserId:uid,shift:SHIFTS[(nameI+ti)%3]});
+      var sk={aht:rnd(),csat:rnd(),abs:rnd(),utilization:rnd(),quality:rnd(),qc:rnd()},drift=(rnd()-.4)*.02;
+      for(var p=0;p<periods.length;p++){
+        var st=p*drift,j=function(){return (rnd()-.5)*.05;};
+        var s=function(v){return Math.max(.04,Math.min(.99,v+st+j()));};
+        db.metrics.push({agentId:aid,period:periods[p],
+          aht:Math.round(690+(1-s(sk.aht))*470),
+          csat:+(76+s(sk.csat)*21).toFixed(1),
+          abs:+(1.4+(1-s(sk.abs))*9.6).toFixed(2),
+          utilization:+(68+s(sk.utilization)*27).toFixed(2),
+          quality:+(73+s(sk.quality)*24).toFixed(1),
+          qc:+(68+s(sk.qc)*29).toFixed(1),
+          calls:Math.round(310+s(sk.utilization)*290)});
+      }
+      nameI++;
+    }
+  });
+  [0,10,20].forEach(function(i){
+    var a=db.agents[i];
+    db.users.push({id:nid(),username:a.code.toLowerCase(),password:"Agent@123",role:"agent",fullName:a.name,teamId:a.teamId,agentId:a.id,active:true,lastLogin:null});
+  });
+  db.uploads.push({id:nid(),filename:"OFF_Queue_Weekly_"+periods[periods.length-1]+".xlsx",period:periods[periods.length-1],rowCount:db.agents.length,newAgents:db.agents.length,skipped:0,by:"Operations Manager — Admin",at:new Date().toISOString()});
+  return db;
+}
+function load(){
+  try{var raw=localStorage.getItem(KEY);if(raw){var p=JSON.parse(raw);if(p&&p.users&&p.agents)return p;}}catch(e){}
+  var s=seed();save(s);return s;
+}
+function save(db){DB=db||DB;try{localStorage.setItem(KEY,JSON.stringify(DB));}catch(e){}}
+function resetData(){DB=seed();save();toast("Sample data has been reset");render();}
+
+/* ---------- 4. Session ---------- */
+var SESSION=null;
+function login(username,password){
+  var u=DB.users.filter(function(x){return x.username.toLowerCase()===String(username||"").trim().toLowerCase();})[0];
+  if(!u||u.password!==password)return{error:"Incorrect username or password"};
+  if(!u.active)return{error:"This account is disabled — contact an admin"};
+  u.lastLogin=new Date().toISOString();save();
+  SESSION={id:u.id};try{sessionStorage.setItem(KEY+".s",String(u.id));}catch(e){}
+  return{user:u};
+}
+function logout(){SESSION=null;try{sessionStorage.removeItem(KEY+".s");}catch(e){}render();}
+function me(){
+  if(!SESSION)return null;
+  return DB.users.filter(function(u){return u.id===SESSION.id;})[0]||null;
+}
+
+/* ---------- 5. View state + URL ---------- */
+var UI={view:"dashboard",period:null,teamId:null,metric:"csat",query:"",status:"all",sort:"score",dir:"desc",openAgent:null,tab:"upload"};
+function readURL(){
+  var qs="";
+  try{qs=location.search||"";}catch(e){}
+  if(!qs&&location.hash&&location.hash.indexOf("=")>0)qs="?"+location.hash.slice(1);
+  var p=new URLSearchParams(qs);
+  if(p.get("agent")!=null)UI.query=p.get("agent");
+  if(p.get("period"))UI.period=p.get("period");
+  if(p.get("team"))UI.teamId=Number(p.get("team"))||null;
+  if(p.get("metric")&&M[p.get("metric")])UI.metric=p.get("metric");
+  if(p.get("status"))UI.status=p.get("status");
+  if(p.get("sort"))UI.sort=p.get("sort");
+  if(p.get("dir"))UI.dir=p.get("dir");
+  if(p.get("view"))UI.view=p.get("view");
+}
+function writeURL(){
+  var p=new URLSearchParams();
+  if(UI.query)p.set("agent",UI.query);
+  if(UI.period)p.set("period",UI.period);
+  if(UI.teamId)p.set("team",String(UI.teamId));
+  if(UI.metric!=="csat")p.set("metric",UI.metric);
+  if(UI.status!=="all")p.set("status",UI.status);
+  if(UI.sort!=="score")p.set("sort",UI.sort);
+  if(UI.dir!=="desc")p.set("dir",UI.dir);
+  if(UI.view!=="dashboard")p.set("view",UI.view);
+  var qs=p.toString();
+  try{history.replaceState(null,"",location.pathname+(qs?"?"+qs:""));}
+  catch(e){try{if(qs)location.hash=qs;}catch(e2){}}
+}
+function setUI(patch,keepFocus){
+  Object.keys(patch).forEach(function(k){UI[k]=patch[k];});
+  writeURL();
+  if(keepFocus)updateDashboard();else render();
+}
+
+/* ---------- 6. Derived data ---------- */
+function periods(){
+  var s={};DB.metrics.forEach(function(m){s[m.period]=1;});
+  return Object.keys(s).sort();
+}
+function currentPeriod(){
+  var ps=periods();
+  if(UI.period&&ps.indexOf(UI.period)>=0)return UI.period;
+  return ps[ps.length-1]||"";
+}
+function teamOf(id){return DB.teams.filter(function(t){return t.id===id;})[0]||{name:"No team",color:"#00e5a8",codename:"—",leaderUserId:null};}
+function leaderName(teamId){
+  var t=teamOf(teamId);
+  var u=DB.users.filter(function(x){return x.id===t.leaderUserId;})[0];
+  return u?u.fullName:"No leader";
+}
+function metricOf(agentId,period){
+  return DB.metrics.filter(function(m){return m.agentId===agentId&&m.period===period;})[0]||null;
+}
+function scopedAgents(){
+  var u=me(),p=currentPeriod(),out=[];
+  DB.agents.forEach(function(a){
+    if(u.role==="leader"&&a.teamId!==u.teamId)return;
+    if(u.role==="agent"&&a.id!==u.agentId)return;
+    if(u.role==="admin"&&UI.teamId&&a.teamId!==UI.teamId)return;
+    var s=metricOf(a.id,p);if(!s)return;
+    var t=teamOf(a.teamId);
+    out.push({id:a.id,name:a.name,code:a.code,shift:a.shift,teamId:a.teamId,teamName:t.name,teamColor:t.color,leader:leaderName(a.teamId),set:s});
+  });
+  return out;
+}
+function rankBy(list,key){
+  var d=M[key];
+  return list.slice().sort(function(a,b){return d.better==="higher"?b.set[key]-a.set[key]:a.set[key]-b.set[key];});
+}
+function filtered(list){
+  var q=norm(UI.query);
+  var out=q?list.filter(function(a){return norm(a.name).indexOf(q)>=0||norm(a.code).indexOf(q)>=0||norm(a.teamName).indexOf(q)>=0||norm(a.leader).indexOf(q)>=0;}):list.slice();
+  if(UI.status==="met")out=out.filter(function(a){return meets(UI.metric,a.set[UI.metric]);});
+  if(UI.status==="missed")out=out.filter(function(a){return !meets(UI.metric,a.set[UI.metric]);});
+  var dir=UI.dir==="asc"?1:-1,k=UI.sort;
+  out.sort(function(a,b){
+    if(k==="name")return a.name.localeCompare(b.name,"ar")*dir;
+    if(k==="team")return a.teamName.localeCompare(b.teamName,"ar")*dir;
+    if(k==="score")return (score(a.set)-score(b.set))*dir;
+    var diff=a.set[k]-b.set[k];
+    return (M[k].better==="higher"?diff:-diff)*dir;
+  });
+  return out;
+}
+
+/* ---------- 7. Chart elements ---------- */
+function gauge(pct,color,label,sub,size){
+  size=size||96;var st=9,r=(size-st)/2-2,c=2*Math.PI*r,f=(Math.max(0,Math.min(140,pct))/140)*c,tm=(100/140)*c;
+  return '<div style="position:relative;width:'+size+'px;height:'+size+'px;display:grid;place-items:center;flex:none">'+
+    '<svg width="'+size+'" height="'+size+'" style="transform:rotate(-90deg)">'+
+      '<circle cx="'+size/2+'" cy="'+size/2+'" r="'+r+'" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="'+st+'"/>'+
+      '<circle cx="'+size/2+'" cy="'+size/2+'" r="'+r+'" fill="none" stroke="'+color+'" stroke-width="'+st+'" stroke-linecap="round" stroke-dasharray="'+f.toFixed(1)+' '+(c-f).toFixed(1)+'" style="filter:drop-shadow(0 0 6px '+color+'66);transition:stroke-dasharray .7s cubic-bezier(.22,1,.36,1)"/>'+
+      '<circle cx="'+size/2+'" cy="'+size/2+'" r="'+r+'" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="'+(st+4)+'" stroke-dasharray="2 '+(c-2).toFixed(1)+'" stroke-dashoffset="'+(-tm).toFixed(1)+'"/>'+
+    '</svg>'+
+    '<div style="position:absolute;text-align:center"><div class="num" style="font-weight:800;font-size:'+(size>100?18:15)+'px;color:'+color+'">'+esc(label)+'</div>'+
+    (sub?'<div style="font-size:10px;color:var(--fog)">'+esc(sub)+"</div>":"")+"</div></div>";
+}
+function spark(vals,color,w,h,invert){
+  w=w||96;h=h||30;
+  if(!vals||vals.length<2)return '<div style="width:'+w+'px;height:'+h+'px"></div>';
+  var mn=Math.min.apply(null,vals),mx=Math.max.apply(null,vals),sp=(mx-mn)||1,pts=[];
+  vals.forEach(function(v,i){
+    var x=(i/(vals.length-1))*(w-4)+2,n=(v-mn)/sp;
+    var y=invert?(3+n*(h-6)):(h-3-n*(h-6));
+    pts.push([x,y]);
+  });
+  var d=pts.map(function(p,i){return (i?"L":"M")+p[0].toFixed(1)+","+p[1].toFixed(1);}).join(" ");
+  var area=d+" L"+pts[pts.length-1][0].toFixed(1)+","+h+" L"+pts[0][0].toFixed(1)+","+h+" Z";
+  var gid="g"+Math.random().toString(36).slice(2,8);
+  return '<svg width="'+w+'" height="'+h+'" style="overflow:visible;flex:none">'+
+    '<defs><linearGradient id="'+gid+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="'+color+'" stop-opacity=".35"/><stop offset="100%" stop-color="'+color+'" stop-opacity="0"/></linearGradient></defs>'+
+    '<path d="'+area+'" fill="url(#'+gid+')"/><path d="'+d+'" fill="none" stroke="'+color+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'+
+    '<circle cx="'+pts[pts.length-1][0].toFixed(1)+'" cy="'+pts[pts.length-1][1].toFixed(1)+'" r="3" fill="'+color+'"/></svg>';
+}
+function trendChart(box,ps,series,target,key){
+  var W=760,H=280,pl=58,pr=22,pt=24,pb=34;
+  var all=[target];series.forEach(function(s){all=all.concat(s.values);});
+  var lo=Math.min.apply(null,all),hi=Math.max.apply(null,all),gap=((hi-lo)||1)*.22;
+  var mn=lo-gap,mx=hi+gap;
+  function X(i){return pl+(i/Math.max(1,ps.length-1))*(W-pl-pr);}
+  function Y(v){return pt+(1-(v-mn)/((mx-mn)||1))*(H-pt-pb);}
+  var svg='<svg id="trendSvg" viewBox="0 0 '+W+' '+H+'" style="width:100%;height:280px;touch-action:none;user-select:none">';
+  svg+='<defs><linearGradient id="ta" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="'+series[0].color+'" stop-opacity=".28"/><stop offset="100%" stop-color="'+series[0].color+'" stop-opacity="0"/></linearGradient></defs>';
+  [0,.25,.5,.75,1].forEach(function(t){
+    var v=mn+t*(mx-mn);
+    svg+='<line x1="'+pl+'" x2="'+(W-pr)+'" y1="'+Y(v).toFixed(1)+'" y2="'+Y(v).toFixed(1)+'" stroke="rgba(255,255,255,.07)"/>'+
+         '<text x="'+(pl-10)+'" y="'+(Y(v)+4).toFixed(1)+'" text-anchor="end" font-size="11" fill="#93a4c4" font-family="monospace">'+esc(fmt(key,v))+"</text>";
+  });
+  svg+='<line x1="'+pl+'" x2="'+(W-pr)+'" y1="'+Y(target).toFixed(1)+'" y2="'+Y(target).toFixed(1)+'" stroke="#ffb627" stroke-width="1.6" stroke-dasharray="7 6"/>'+
+       '<text x="'+(W-pr)+'" y="'+(Y(target)-8).toFixed(1)+'" text-anchor="end" font-size="11" fill="#ffb627" font-family="monospace">TARGET '+esc(fmt(key,target))+"</text>";
+  ps.forEach(function(p,i){svg+='<text x="'+X(i).toFixed(1)+'" y="'+(H-12)+'" text-anchor="middle" font-size="11" fill="#93a4c4" font-family="monospace">'+esc(periodShort(p))+"</text>";});
+  if(series[0].primary){
+    var ar=series[0].values.map(function(v,i){return (i?"L":"M")+X(i).toFixed(1)+","+Y(v).toFixed(1);}).join(" ");
+    ar+=" L"+X(ps.length-1).toFixed(1)+","+(H-pb)+" L"+X(0).toFixed(1)+","+(H-pb)+" Z";
+    svg+='<path d="'+ar+'" fill="url(#ta)"/>';
+  }
+  series.forEach(function(s){
+    var d=s.values.map(function(v,i){return (i?"L":"M")+X(i).toFixed(1)+","+Y(v).toFixed(1);}).join(" ");
+    svg+='<path d="'+d+'" fill="none" stroke="'+s.color+'" stroke-width="'+(s.primary?3.2:1.9)+'" stroke-linecap="round" stroke-linejoin="round"'+(s.dashed?' stroke-dasharray="6 5"':"")+' opacity="'+(s.primary?1:.85)+'"/>';
+    s.values.forEach(function(v,i){svg+='<circle class="tp" data-i="'+i+'" data-r="'+(s.primary?3.6:2.6)+'" cx="'+X(i).toFixed(1)+'" cy="'+Y(v).toFixed(1)+'" r="'+(s.primary?3.6:2.6)+'" fill="#080d1a" stroke="'+s.color+'" stroke-width="2"/>';});
+  });
+  svg+='<line id="guide" x1="0" x2="0" y1="'+(pt-8)+'" y2="'+(H-pb)+'" stroke="rgba(255,255,255,.28)" style="opacity:0"/></svg>';
+  box.innerHTML=svg+'<div id="trendTip" class="tight" style="position:absolute;top:10px;display:none;min-width:180px;padding:11px;font-size:12px;pointer-events:none;box-shadow:0 18px 40px rgba(0,0,0,.5)"></div>';
+  var el=$("trendSvg"),tip=$("trendTip"),guide=$("guide");
+  el.addEventListener("pointermove",function(ev){
+    var r=el.getBoundingClientRect(),ratio=(ev.clientX-r.left)/r.width,sx=ratio*W;
+    var i=Math.round(((sx-pl)/(W-pl-pr))*(ps.length-1));
+    i=Math.max(0,Math.min(ps.length-1,i));
+    guide.setAttribute("x1",X(i));guide.setAttribute("x2",X(i));guide.style.opacity=1;
+    var html='<div style="font-weight:700;margin-bottom:7px">'+esc(periodLabel(ps[i]))+"</div>";
+    series.forEach(function(s){
+      html+='<div style="display:flex;justify-content:space-between;gap:14px;margin-top:4px"><span style="color:var(--fog)"><i style="display:inline-block;width:8px;height:8px;border-radius:99px;background:'+s.color+';margin-inline-end:5px"></i>'+esc(s.name)+'</span><b class="num" style="color:'+s.color+'">'+esc(fmt(key,s.values[i]))+"</b></div>";
+    });
+    tip.innerHTML=html;tip.style.display="block";
+    if(i>ps.length/2){tip.style.insetInlineEnd="auto";tip.style.insetInlineStart="14px";}
+    else{tip.style.insetInlineStart="auto";tip.style.insetInlineEnd="14px";}
+    el.querySelectorAll(".tp").forEach(function(c){c.setAttribute("r",Number(c.getAttribute("data-i"))===i?5:c.getAttribute("data-r"));});
+  });
+  el.addEventListener("pointerleave",function(){tip.style.display="none";guide.style.opacity=0;});
+}
+
+/* ---------- 8. Login screen ---------- */
+function viewLogin(){
+  var cards=METRICS.map(function(m,i){
+    return '<div class="tight rise" style="padding:13px;animation-delay:'+(.05*i+.1)+'s;border-color:'+m.color+'33">'+
+      '<div class="flexb"><span class="num" style="font-size:13px;font-weight:800;color:'+m.color+'">'+m.label+'</span><span style="color:'+m.color+'">'+m.icon+"</span></div>"+
+      '<div class="num" style="margin-top:8px;font-size:18px;font-weight:800">'+esc(fmt(m.key,m.target))+"</div>"+
+      '<div class="mini">'+m.ar+"</div></div>";
+  }).join("");
+  var demos=[
+    {r:"Admin",u:"admin",p:"Admin@123",n:"All teams + Excel upload + account creation",c:"#00e5a8"},
+    {r:"Team Leader",u:"m.abdelrahman",p:"Leader@123",n:"Falcon Team only + agent accounts",c:"#4d9dff"},
+    {r:"Agent",u:"ag-1042",p:"Agent@123",n:"Own metrics only",c:"#ffb627"}
+  ].map(function(d){
+    return '<button class="tight" data-act="demo" data-u="'+d.u+'" data-p="'+d.p+'" style="display:flex;width:100%;align-items:center;justify-content:space-between;gap:12px;padding:10px 13px;text-align:left">'+
+      '<span style="display:flex;align-items:center;gap:10px"><i style="width:6px;height:30px;border-radius:99px;background:'+d.c+'"></i>'+
+      '<span><span style="display:block;font-size:13px;font-weight:800">'+d.r+'</span><span class="mini">'+d.n+"</span></span></span>"+
+      '<span class="num mini" style="text-align:left">'+d.u+"<br>"+d.p+"</span></button>";
+  }).join("");
+  return '<div style="max-width:1200px;margin:0 auto;padding:40px 18px;display:grid;gap:34px;align-items:center;min-height:100vh" class="heroGrid grid2">'+
+    '<section class="rise">'+
+      '<div style="display:flex;align-items:center;gap:12px"><div class="mark" style="width:48px;height:48px;font-size:17px">OQ</div>'+
+      '<div><div class="kicker">Call Center Analytics</div><h1 style="font-size:28px">OFF Queue Performance Report</h1></div></div>'+
+      '<p class="sub" style="max-width:620px;font-size:14.5px;margin-top:22px">One complete file to track OFF Queue agent performance: each agent by name, their team leader, and their numbers against approved targets. Excel sheets are uploaded by the admin, and search by name works through a direct link.</p>'+
+      '<div style="display:grid;gap:11px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-top:24px">'+cards+"</div>"+
+      '<div class="mini" style="margin-top:22px;display:flex;align-items:center;gap:8px"><span class="dot"></span> Standalone version — data is saved in your browser</div>'+
+    "</section>"+
+    '<section class="panel pop" style="padding:26px">'+
+      "<h2 style=\"font-size:20px\">Sign in</h2>"+
+      '<p class="sub">Enter the account details you received from your admin or team leader.</p>'+
+      '<form id="loginForm" style="margin-top:20px;display:grid;gap:13px">'+
+        '<label><span class="mini" style="display:block;margin-bottom:6px;font-weight:700">Username</span><input class="inp" name="u" autocomplete="username" placeholder="admin"></label>'+
+        '<label><span class="mini" style="display:block;margin-bottom:6px;font-weight:700">Password</span><input class="inp" name="p" type="password" autocomplete="current-password" placeholder="••••••••"></label>'+
+        '<div id="loginErr"></div>'+
+        '<button class="btn primary" type="submit" style="padding:13px">Sign in to the report</button>'+
+      "</form>"+
+      '<div class="hair" style="margin:22px 0"></div>'+
+      '<div class="mini" style="font-weight:700;margin-bottom:10px">Demo accounts — click to fill in automatically</div>'+
+      '<div style="display:grid;gap:8px">'+demos+"</div>"+
+    "</section></div>";
+}
+
+/* ---------- 9. App shell ---------- */
+function topbar(u){
+  var roleMap={admin:{l:"Admin",c:"#00e5a8"},leader:{l:"Team Leader",c:"#4d9dff"},agent:{l:"Agent",c:"#ffb627"}};
+  var r=roleMap[u.role];
+  var scope=u.role==="admin"?"Admin · All teams":(u.role==="leader"?teamOf(u.teamId).name:"My numbers");
+  var nav='<button data-act="go" data-v="dashboard" class="'+(UI.view==="dashboard"?"on":"")+'">Report</button>'+
+    (u.role!=="agent"?'<button data-act="go" data-v="manage" class="'+(UI.view==="manage"?"on":"")+'">'+(u.role==="admin"?"Admin panel":"Team accounts")+"</button>":"");
+  return '<header class="topbar"><div class="inner">'+
+    '<a class="brand" href="#" data-act="go" data-v="dashboard"><span class="mark">OQ</span>'+
+    '<span class="brandtxt"><span style="display:block;font-size:13px;font-weight:800;line-height:1.2">OFF Queue Performance Report</span>'+
+    '<span class="mini" style="letter-spacing:.24em;text-transform:uppercase">'+esc(scope)+"</span></span></a>"+
+    '<nav class="nav">'+nav+"</nav>"+
+    '<div style="margin-inline-start:auto;display:flex;align-items:center;gap:10px">'+
+      '<div class="userchip"><span style="width:27px;height:27px;border-radius:9px;display:grid;place-items:center;font-size:11px;font-weight:800;background:'+r.c+"22;color:"+r.c+'">'+esc(u.fullName.charAt(0))+"</span>"+
+      '<span class="utxt" style="line-height:1.25"><span style="display:block;font-size:12.5px;font-weight:700;max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(u.fullName)+"</span>"+
+      '<span class="num mini" style="color:'+r.c+'">'+r.l+" · "+esc(u.username)+"</span></span></div>"+
+      '<button class="btn" data-act="logout">Log out</button>'+
+    "</div></div></header>";
+}
+
+function render(){
+  var u=me();
+  var app=$("app");
+  if(!u){app.innerHTML=viewLogin();$("loginForm").addEventListener("submit",function(e){
+      e.preventDefault();
+      var f=e.target,res=login(f.elements.u.value,f.elements.p.value);
+      if(res.error){$("loginErr").innerHTML='<div style="border:1px solid rgba(255,77,109,.4);background:rgba(255,77,109,.1);color:var(--rose);padding:9px 13px;border-radius:11px;font-size:12.5px">'+esc(res.error)+"</div>";return;}
+      UI.view="dashboard";UI.teamId=null;render();
+      if(UI.openAgent&&res.user.role!=="agent")openDrawer(UI.openAgent);
+    });return;}
+  if(u.role==="agent")UI.view="dashboard";
+  if(UI.view==="manage"&&u.role!=="agent"){app.innerHTML=topbar(u)+viewManage(u);wireManage();return;}
+  if(u.role==="agent"){app.innerHTML=topbar(u)+viewPersonal(u);updatePersonal();return;}
+  app.innerHTML=topbar(u)+viewDashboard(u);
+  updateDashboard();
+}
+
+/* ---------- 10. Dashboard ---------- */
+function viewDashboard(u){
+  var ps=periods();
+  var teamChips=u.role==="admin"?('<button class="chip" data-act="team" data-id="">All teams</button>'+DB.teams.map(function(t){
+    return '<button class="chip" data-act="team" data-id="'+t.id+'">'+esc(t.name)+"</button>";}).join("")):"";
+  return '<div class="wrap">'+
+  '<section class="grid2 heroGrid">'+
+    '<div class="panel rise" style="padding:26px;position:relative;overflow:hidden">'+
+      '<div style="position:absolute;inset-inline-start:-90px;top:-90px;width:280px;height:280px;border-radius:99px;filter:blur(60px);background:rgba(0,229,168,.14)"></div>'+
+      '<div style="position:relative">'+
+        '<div style="display:flex;flex-wrap:wrap;gap:8px;font-size:11px">'+
+          '<span class="pill" style="background:rgba(0,229,168,.15);color:var(--mint)">OFF QUEUE</span>'+
+          '<span class="pill" id="scopePill" style="border:1px solid var(--line);color:var(--fog)"></span>'+
+          '<span class="pill" id="periodPill" style="border:1px solid var(--line);color:var(--fog)"></span>'+
+          '<span class="pill" style="border:1px solid var(--line);color:var(--fog)"><span class="dot"></span> Updated from Excel sheet</span>'+
+        "</div>"+
+        "<h1>OFF Queue <span class=\"grad\">Performance Report</span></h1>"+
+        '<p class="sub" id="heroLine" style="max-width:640px;font-size:13.5px"></p>'+
+        '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:18px">'+
+          '<button class="btn" data-act="export">⬇ Export CSV</button>'+
+          '<button class="btn" data-act="copyview">🔗 Copy view link</button>'+
+          (u.role==="admin"?'<button class="btn" data-act="go" data-v="manage">📄 Upload Excel sheet</button>':"")+
+          '<button class="btn" data-act="reset">⟲ Reset data</button>'+
+        "</div>"+
+      "</div>"+
+    "</div>"+
+    '<div class="panel" style="padding:22px;display:grid;grid-template-columns:1fr 1fr;gap:14px" id="heroStats"></div>'+
+  "</section>"+
+
+  '<section class="panel toolbar">'+
+    '<div class="searchWrap"><span class="ic">🔍</span>'+
+      '<input class="inp" id="search" type="search" placeholder="Search by agent name, code or team leader… (search is saved in the link)" value="'+esc(UI.query)+'">'+
+      '<button class="clr" data-act="clearq">Clear ✕</button></div>'+
+    (teamChips?'<div style="display:flex;flex-wrap:wrap;gap:6px" id="teamChips">'+teamChips+"</div>":"")+
+    '<select class="inp" id="periodSel" style="width:auto">'+ps.map(function(p){return '<option value="'+p+'">'+esc(periodLabel(p))+"</option>";}).join("")+"</select>"+
+    '<div style="display:flex;gap:5px;border:1px solid var(--line);border-radius:12px;padding:4px;background:rgba(0,0,0,.2)">'+
+      '<button class="chip" data-act="status" data-s="all">All</button>'+
+      '<button class="chip" data-act="status" data-s="met">On target</button>'+
+      '<button class="chip" data-act="status" data-s="missed">Off target</button></div>'+
+    '<button class="btn" data-act="clearfilters">Reset filters</button>'+
+    '<span class="num mini" id="countPill" style="border:1px solid var(--line);border-radius:12px;padding:8px 12px"></span>'+
+  "</section>"+
+
+  '<section class="cards" id="kpis" style="margin-top:18px"></section>'+
+
+  '<section style="margin-top:34px">'+
+    '<div class="kicker">Top Talents</div><h2 style="font-size:24px">Top agents for each metric</h2>'+
+    '<p class="sub" id="talentSub"></p>'+
+    '<div class="cards" id="talents" style="margin-top:14px"></div>'+
+  "</section>"+
+
+  '<section class="grid2 anaGrid" style="margin-top:22px">'+
+    '<div class="panel" style="padding:20px">'+
+      '<div class="flexb"><div><div class="kicker">Trend</div><h2 id="trendTitle"></h2><p class="sub" id="trendHint"></p></div>'+
+      '<div style="display:flex;flex-wrap:wrap;gap:5px" id="metricTabs"></div></div>'+
+      '<div style="position:relative;margin-top:12px" id="trendBox"></div>'+
+      '<div class="mini" id="trendLegend" style="display:flex;flex-wrap:wrap;gap:12px;margin-top:8px"></div>'+
+    "</div>"+
+    '<div class="panel" style="padding:20px"><div class="kicker" id="cmpKicker">Teams</div><h2 id="cmpTitle"></h2>'+
+    '<p class="sub">The yellow line shows the approved target</p><div id="compare" style="margin-top:14px"></div></div>'+
+  "</section>"+
+
+  '<section class="panel" style="padding:20px;margin-top:16px">'+
+    '<div class="flexb"><div><div class="kicker">Matrix</div><h2>Target compliance matrix</h2><p class="sub">Each cell = agent value, colored by target achievement</p></div>'+
+    '<div class="mini" style="display:flex;gap:8px;flex-wrap:wrap">'+
+      [["#00e5a8","≥ 108%"],["#b8f02d","100–108%"],["#ffb627","92–99%"],["#ff4d6d","< 92%"]].map(function(x){
+        return '<span style="border:1px solid var(--line);border-radius:7px;padding:4px 8px"><i style="display:inline-block;width:10px;height:10px;border-radius:3px;background:'+x[0]+';margin-inline-end:5px"></i>'+x[1]+"</span>";}).join("")+
+    "</div></div>"+
+    '<div class="scroller" style="max-height:420px"><table id="matrix"></table></div>'+
+  "</section>"+
+
+  '<section class="panel" style="padding:20px;margin-top:16px">'+
+    '<div class="flexb"><div><div class="kicker">Agents</div><h2>Agent details</h2><p class="sub">Click any row to open the agent card · Click a column header to sort</p></div>'+
+    '<span class="mini" id="sortInfo"></span></div>'+
+    '<div class="scroller" style="max-height:640px"><table id="agentsTable" style="min-width:1080px"></table></div>'+
+  "</section>"+
+  "</div>";
+}
+
+function updateDashboard(){
+  var u=me();if(!u||u.role==="agent")return;
+  var p=currentPeriod(),ps=periods();
+  var scope=scopedAgents(),list=filtered(scope);
+  var sets=scope.map(function(a){return a.set;}),av=avg(sets),sc=score(av),bd=band(sc);
+  var teamsIn={};scope.forEach(function(a){teamsIn[a.teamId]=1;});
+  var teamCount=Object.keys(teamsIn).length;
+  var totalCalls=sets.reduce(function(s,x){return s+(x.calls||0);},0);
+
+  if($("periodSel"))$("periodSel").value=p;
+  if($("scopePill"))$("scopePill").textContent=u.role==="admin"?(UI.teamId?teamOf(UI.teamId).name:"All teams"):teamOf(u.teamId).name;
+  if($("periodPill"))$("periodPill").textContent=periodLabel(p);
+  if($("heroLine"))$("heroLine").innerHTML="Performance of <b>"+scope.length+"</b> agents under <b>"+teamCount+"</b> team leader(s), compared with approved targets: AHT 0:15:00 · C-SAT 90% · ABS 6.00% · Utilization 85.00% · Quality 90% · QC 85%.";
+  if($("countPill"))$("countPill").textContent=list.length+" / "+scope.length;
+  if($("teamChips")){
+    $("teamChips").querySelectorAll("[data-act='team']").forEach(function(b){
+      var id=b.getAttribute("data-id"),on=(id===""&&!UI.teamId)||Number(id)===UI.teamId;
+      var col=id===""?"#00e5a8":teamOf(Number(id)).color;
+      b.style.background=on?col+"22":"rgba(255,255,255,.04)";
+      b.style.color=on?col:"var(--fog)";
+      b.style.boxShadow=on?"inset 0 0 0 1px "+col+"55":"none";
+    });
+  }
+  document.querySelectorAll("[data-act='status']").forEach(function(b){
+    var on=b.getAttribute("data-s")===UI.status;
+    b.style.background=on?"rgba(255,255,255,.1)":"transparent";b.style.color=on?"var(--chalk)":"var(--fog)";
+  });
+
+  if($("heroStats")){
+    $("heroStats").innerHTML='<div style="grid-column:1/-1;display:flex;align-items:center;gap:16px">'+
+      gauge(sc,bd.color,sc.toFixed(0),"Score",104)+
+      '<div><div class="mini">Overall compliance index</div><div style="font-size:20px;font-weight:800;color:'+bd.color+'">'+bd.label+"</div>"+
+      '<div class="mini" style="margin-top:4px">Average target achievement across 6 metrics</div></div></div>'+
+      statBox("Agents",String(scope.length),"#4d9dff")+
+      statBox("Teams",String(teamCount),"#00e5a8")+
+      statBox("Total calls",nfmt(totalCalls),"#ffb627")+
+      statBox("Metrics on target",METRICS.filter(function(m){return meets(m.key,av[m.key]);}).length+"/6","#b8f02d");
+  }
+
+  // KPI cards
+  if($("kpis")){
+    $("kpis").innerHTML=METRICS.map(function(m,i){
+      var v=av[m.key],a=ach(m.key,v),ok=meets(m.key,v);
+      var pass=scope.filter(function(x){return meets(m.key,x.set[m.key]);}).length;
+      var pct=scope.length?(pass/scope.length)*100:0;
+      var tr=ps.map(function(pp){
+        var ss=scope.map(function(x){return metricOf(x.id,pp);}).filter(Boolean);
+        return ss.length?avg(ss)[m.key]:0;
+      });
+      var on=UI.metric===m.key;
+      return '<button class="panel rise" data-act="metric" data-k="'+m.key+'" style="padding:20px;text-align:left;animation-delay:'+(i*.05)+'s;position:relative;overflow:hidden;'+(on?"border-color:"+m.color+"66;box-shadow:0 18px 50px "+m.color+"22":"")+'">'+
+        '<div style="position:absolute;inset-inline-start:-60px;top:-60px;width:150px;height:150px;border-radius:99px;filter:blur(34px);background:'+m.color+'22"></div>'+
+        '<div style="position:relative;display:flex;justify-content:space-between;gap:12px;align-items:flex-start">'+
+          "<div>"+
+            '<div style="display:flex;align-items:center;gap:8px"><span style="width:31px;height:31px;border-radius:11px;display:grid;place-items:center;background:'+m.color+"1f;color:"+m.color+'">'+m.icon+"</span>"+
+            '<span><span class="num" style="display:block;font-size:13px;font-weight:800;color:'+m.color+'">'+m.label+'</span><span class="mini">'+m.ar+"</span></span></div>"+
+            '<div class="num" style="margin-top:14px;font-size:33px;font-weight:900;line-height:1">'+esc(fmt(m.key,v))+"</div>"+
+            '<div class="mini" style="margin-top:7px">Target <span class="num" style="color:var(--chalk)">'+esc(fmt(m.key,m.target))+'</span> · <b class="num" style="color:'+(ok?"#b8f02d":"#ff4d6d")+'">'+esc(delta(m.key,v))+"</b></div>"+
+          "</div>"+
+          gauge(a,m.color,a.toFixed(0)+"%","Achieved",90)+
+        "</div>"+
+        '<div style="position:relative;display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin-top:16px">'+
+          '<div style="flex:1"><div class="mini" style="display:flex;justify-content:space-between"><span><b class="num" style="color:'+m.color+'">'+pass+"</b> of "+scope.length+' on target</span><span class="num">'+pct.toFixed(0)+"%</span></div>"+
+          '<div class="bar" style="margin-top:6px;height:6px"><i style="width:'+pct.toFixed(1)+'%;background:linear-gradient(90deg,'+m.color+"66,"+m.color+')"></i></div></div>'+
+          spark(tr,m.color,96,30,m.better==="lower")+
+        "</div></button>";
+    }).join("");
+  }
+
+  // Top talents
+  if($("talentSub"))$("talentSub").textContent="Ranking is calculated within the current view for period "+periodLabel(p)+" — each metric has its own top performer.";
+  if($("talents")){
+    $("talents").innerHTML=METRICS.map(function(m,i){
+      var top=rankBy(scope,m.key).slice(0,3);
+      var rows=top.length?top.map(function(a,r){
+        return '<button class="talent" data-act="open" data-id="'+a.id+'">'+
+          '<span class="fill" style="width:'+(100-r*18)+'%;background:'+m.color+'"></span>'+
+          '<span class="rank num" style="background:'+(r===0?m.color:m.color+"22")+';color:'+(r===0?"#05070e":m.color)+'">'+(r+1)+"</span>"+
+          '<span style="position:relative;flex:1;min-width:0"><span style="display:block;font-size:13px;font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+(r===0?"🏆 ":"")+esc(a.name)+"</span>"+
+          '<span class="mini" style="display:flex;align-items:center;gap:5px"><i style="width:8px;height:8px;border-radius:2px;background:'+a.teamColor+'"></i>'+esc(a.teamName)+" · "+esc(a.leader)+"</span></span>"+
+          '<b class="num" style="position:relative;font-size:13.5px;color:'+m.color+'">'+esc(fmt(m.key,a.set[m.key]))+"</b></button>";
+      }).join(""):'<div class="mini" style="padding:22px;text-align:center">No data for this period</div>';
+      return '<div class="panel rise" style="padding:18px;animation-delay:'+(i*.05)+'s;border-color:'+m.color+'2e">'+
+        '<div class="flexb"><div style="display:flex;align-items:center;gap:8px">'+
+        '<span style="width:31px;height:31px;border-radius:11px;display:grid;place-items:center;background:'+m.color+"1f;color:"+m.color+'">'+m.icon+"</span>"+
+        '<span><span class="num" style="display:block;font-size:13px;font-weight:800;color:'+m.color+'">Top '+m.label+'</span><span class="mini">'+m.hint+"</span></span></div>"+
+        '<span class="num mini" style="border:1px solid var(--line);border-radius:8px;padding:4px 8px">Target '+esc(fmt(m.key,m.target))+"</span></div>"+
+        '<div style="display:grid;gap:8px;margin-top:14px">'+rows+"</div></div>";
+    }).join("");
+  }
+
+  // metric tabs + trend
+  if($("metricTabs")){
+    $("metricTabs").innerHTML=METRICS.map(function(m){
+      var on=UI.metric===m.key;
+      return '<button class="chip num" data-act="metric" data-k="'+m.key+'" style="'+(on?"background:"+m.color+"22;color:"+m.color:"")+'">'+m.label+"</button>";
+    }).join("");
+  }
+  var fd=M[UI.metric];
+  if($("trendTitle"))$("trendTitle").textContent="Trend of "+fd.label+" across periods";
+  if($("trendHint"))$("trendHint").textContent=fd.hint;
+  if($("trendBox")){
+    var scopeVals=ps.map(function(pp){
+      var ss=scope.map(function(x){return metricOf(x.id,pp);}).filter(Boolean);
+      return ss.length?avg(ss)[fd.key]:0;
+    });
+    var series=[{id:"scope",name:u.role==="admin"?"Branch average":"Your team average",color:fd.color,values:scopeVals,primary:true}];
+    var tids=Object.keys(teamsIn);
+    if(tids.length>1){
+      tids.forEach(function(tid){
+        var t=teamOf(Number(tid));
+        series.push({id:"t"+tid,name:t.codename,color:t.color,dashed:true,values:ps.map(function(pp){
+          var ss=scope.filter(function(x){return x.teamId===Number(tid);}).map(function(x){return metricOf(x.id,pp);}).filter(Boolean);
+          return ss.length?avg(ss)[fd.key]:0;
+        })});
+      });
+    }
+    trendChart($("trendBox"),ps,series,fd.target,fd.key);
+    $("trendLegend").innerHTML=series.map(function(s){
+      return '<span><i style="display:inline-block;width:9px;height:9px;border-radius:99px;background:'+s.color+';margin-inline-end:5px"></i>'+esc(s.name)+"</span>";
+    }).join("")+'<span><i style="display:inline-block;width:18px;height:2px;background:var(--amber);margin-inline-end:5px;vertical-align:middle"></i>Target line</span>';
+  }
+
+  // comparison
+  if($("compare")){
+    var items;
+    if(teamCount>1){
+      $("cmpKicker").textContent="Teams";$("cmpTitle").textContent="Team comparison in "+fd.label;
+      items=Object.keys(teamsIn).map(function(tid){
+        var t=teamOf(Number(tid)),mem=scope.filter(function(x){return x.teamId===Number(tid);});
+        return {id:Number(tid),name:t.name,caption:leaderName(Number(tid))+" · "+mem.length+" Agent",value:avg(mem.map(function(x){return x.set;}))[fd.key],color:t.color,kind:"team"};
+      });
+    }else{
+      $("cmpKicker").textContent="Agents";$("cmpTitle").textContent="Top 8 agents in "+fd.label;
+      items=rankBy(scope,fd.key).slice(0,8).map(function(a){return {id:a.id,name:a.name,caption:a.code+" · "+a.shift,value:a.set[fd.key],color:a.teamColor,kind:"agent"};});
+    }
+    var vals=items.map(function(i){return i.value;}).concat([fd.target]);
+    var mx=Math.max.apply(null,vals)*1.08,mn=fd.better==="lower"?0:Math.min.apply(null,vals)*.85;
+    function scl(v){return Math.max(3,((v-mn)/((mx-mn)||1))*100);}
+    $("compare").innerHTML=items.map(function(it){
+      var ok=fd.better==="higher"?it.value>=fd.target:it.value<=fd.target;
+      return '<button data-act="'+(it.kind==="team"?"team":"open")+'" data-id="'+it.id+'" style="display:grid;grid-template-columns:150px 1fr 84px;align-items:center;gap:11px;width:100%;padding:6px 8px;border-radius:12px;text-align:left" class="cmprow">'+
+        '<span style="display:flex;align-items:center;gap:8px;min-width:0"><i style="width:6px;height:28px;border-radius:99px;background:'+it.color+';flex:none"></i>'+
+        '<span style="min-width:0"><span style="display:block;font-size:13px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(it.name)+'</span><span class="mini" style="display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(it.caption)+"</span></span></span>"+
+        '<span class="bar" style="height:24px;border-radius:9px"><i style="width:'+scl(it.value).toFixed(1)+'%;background:linear-gradient(90deg,'+it.color+"22,"+it.color+'cc);box-shadow:inset 0 0 0 1px '+it.color+'55"></i>'+
+        '<span class="tgt" style="inset-inline-end:'+scl(fd.target).toFixed(1)+'%;background:var(--amber)"></span></span>'+
+        '<b class="num" style="font-size:13px;color:'+(ok?"#b8f02d":"#ff4d6d")+'">'+esc(fmt(fd.key,it.value))+"</b></button>";
+    }).join("")+'<div class="tipline">Yellow line = approved target ('+esc(fmt(fd.key,fd.target))+") · each bar uses its team's color · "+(fd.better==="lower"?"lower is better":"higher is better")+"</div>";
+  }
+
+  // matrix
+  if($("matrix")){
+    $("matrix").innerHTML="<thead><tr><th>Agent</th>"+METRICS.map(function(m){return '<th class="num" style="text-align:center;color:'+m.color+'">'+m.label+"</th>";}).join("")+'<th style="text-align:center">Score</th></tr></thead><tbody>'+
+      (list.length?list.map(function(a){
+        var s=score(a.set);
+        return '<tr data-act="open" data-id="'+a.id+'"><td><span style="display:flex;align-items:center;gap:8px"><i style="width:4px;height:24px;border-radius:99px;background:'+a.teamColor+'"></i><b>'+esc(a.name)+"</b></span></td>"+
+          METRICS.map(function(m){var c=heat(ach(m.key,a.set[m.key]));
+            return '<td style="padding:6px"><span class="num" title="Achieved '+ach(m.key,a.set[m.key]).toFixed(0)+'%" style="display:block;text-align:center;padding:6px;border-radius:7px;font-size:11.5px;font-weight:700;background:'+c+"1f;color:"+c+'">'+esc(fmt(m.key,a.set[m.key]))+"</span></td>";}).join("")+
+          '<td style="padding:6px"><span class="num" style="display:block;text-align:center;padding:6px;border-radius:7px;font-weight:900;background:'+band(s).color+"1f;color:"+band(s).color+'">'+s.toFixed(0)+"</span></td></tr>";
+      }).join(""):'<tr><td colspan="8" class="mini" style="padding:34px;text-align:center">No matching results</td></tr>')+"</tbody>";
+  }
+
+  // table
+  if($("agentsTable")){
+    var winners={};METRICS.forEach(function(m){var t=rankBy(scope,m.key)[0];if(t)winners[t.id]=(winners[t.id]||[]).concat(m.label);});
+    function th(label,key,color){
+      var on=UI.sort===key;
+      return '<th><button class="num" data-act="sort" data-k="'+key+'" style="font-size:11.5px;font-weight:800;color:'+(color||(on?"#00e5a8":"#93a4c4"))+'">'+label+(on?" ▾":"")+"</button></th>";
+    }
+    $("agentsTable").innerHTML="<thead><tr><th>#</th>"+th("Agent","name")+th("Team leader / Team","team")+
+      METRICS.map(function(m){return th(m.label,m.key,m.color);}).join("")+th("Score","score")+"<th>Link</th></tr></thead><tbody>"+
+      (list.length?list.map(function(a,i){
+        var s=score(a.set),w=winners[a.id];
+        return '<tr data-act="open" data-id="'+a.id+'">'+
+          '<td class="num" style="color:var(--fog)">'+(i+1)+"</td>"+
+          '<td><div style="display:flex;align-items:center;gap:9px"><span style="width:30px;height:30px;border-radius:10px;display:grid;place-items:center;font-weight:800;font-size:12px;background:'+a.teamColor+"1f;color:"+a.teamColor+'">'+esc(a.name.charAt(0))+"</span>"+
+          '<span><b style="display:block">'+esc(a.name)+(w?' <span title="Top Talent: '+w.join(", ")+'">🏆</span>':"")+'</b><span class="num mini">'+esc(a.code)+" · shift "+esc(a.shift)+"</span></span></div></td>"+
+          '<td><span style="display:flex;align-items:center;gap:6px"><i style="width:9px;height:9px;border-radius:2px;background:'+a.teamColor+'"></i>'+esc(a.leader)+'</span><span class="mini">'+esc(a.teamName)+"</span></td>"+
+          METRICS.map(function(m){var ok=meets(m.key,a.set[m.key]);
+            return '<td><b class="num" style="color:'+(ok?"#b8f02d":"#ff4d6d")+'">'+esc(fmt(m.key,a.set[m.key]))+'</b><span class="bar" style="display:block;width:62px;height:4px;margin-top:5px"><i style="width:'+Math.min(100,(ach(m.key,a.set[m.key])/140)*100).toFixed(1)+'%;background:'+m.color+'"></i></span></td>';}).join("")+
+          '<td><span class="num" style="padding:5px 8px;border-radius:8px;font-weight:900;background:'+band(s).color+"1f;color:"+band(s).color+'">'+s.toFixed(0)+"</span></td>"+
+          '<td><button class="btn" data-act="copyagent" data-id="'+a.id+'" style="padding:5px 9px" title="Copy agent link">🔗</button></td></tr>';
+      }).join(""):'<tr><td colspan="11" class="mini" style="padding:40px;text-align:center">No results matching «'+esc(UI.query)+'» — try another name or reset filters.</td></tr>')+"</tbody>";
+    var sl={name:"Name",team:"Team",score:"Score"}[UI.sort]||(M[UI.sort]?M[UI.sort].label:UI.sort);
+    $("sortInfo").innerHTML='Current sort: <b style="color:var(--chalk)">'+esc(sl)+"</b> · "+(UI.dir==="desc"?"descending":"ascending");
+  }
+}
+function statBox(label,value,color){
+  return '<div class="tight" style="padding:12px"><div class="mini">'+esc(label)+'</div><div class="num" style="margin-top:4px;font-size:20px;font-weight:800;color:'+color+'">'+esc(value)+"</div></div>";
+}
+
+/* ---------- 11. Agent card ---------- */
+function openDrawer(agentId){
+  var u=me(),p=currentPeriod();
+  var a=scopedAgents().filter(function(x){return x.id===agentId;})[0];
+  if(!a){var raw=DB.agents.filter(function(x){return x.id===agentId;})[0];if(!raw)return;
+    var t=teamOf(raw.teamId),s=metricOf(raw.id,p);if(!s)return;
+    a={id:raw.id,name:raw.name,code:raw.code,shift:raw.shift,teamId:raw.teamId,teamName:t.name,teamColor:t.color,leader:leaderName(raw.teamId),set:s};}
+  UI.openAgent=a.id;
+  var scope=scopedAgents(),ps=periods();
+  var s=score(a.set),bd=band(s);
+  var winners=[];METRICS.forEach(function(m){if(rankBy(scope,m.key)[0]&&rankBy(scope,m.key)[0].id===a.id)winners.push(m);});
+  var rows=METRICS.map(function(m){
+    var v=a.set[m.key],ac=ach(m.key,v),ok=meets(m.key,v);
+    var tr=ps.map(function(pp){var x=metricOf(a.id,pp);return x?x[m.key]:0;});
+    var rank=rankBy(scope,m.key).findIndex(function(x){return x.id===a.id;})+1;
+    return '<div class="tight" style="padding:13px">'+
+      '<div class="flexb"><div style="display:flex;align-items:center;gap:8px">'+
+      '<span style="width:28px;height:28px;border-radius:9px;display:grid;place-items:center;background:'+m.color+"1f;color:"+m.color+'">'+m.icon+"</span>"+
+      '<span><span class="num" style="display:block;font-size:12.5px;font-weight:800;color:'+m.color+'">'+m.label+'</span><span class="mini">'+m.ar+"</span></span></div>"+
+      '<div style="display:flex;align-items:center;gap:12px">'+spark(tr,m.color,82,26,m.better==="lower")+
+      '<div style="text-align:left"><b class="num" style="display:block;font-size:16px">'+esc(fmt(m.key,v))+'</b><span class="num mini" style="color:'+(ok?"#b8f02d":"#ff4d6d")+'">'+esc(delta(m.key,v))+"</span></div></div></div>"+
+      '<div class="bar" style="margin-top:11px;height:8px"><i style="width:'+Math.min(100,(ac/140)*100).toFixed(1)+'%;background:'+m.color+'"></i><span class="tgt" style="inset-inline-end:'+((100/140)*100).toFixed(1)+'%"></span></div>'+
+      '<div class="mini" style="display:flex;justify-content:space-between;margin-top:7px"><span>Target <b class="num" style="color:var(--chalk)">'+esc(fmt(m.key,m.target))+'</b> · Achieved <b class="num" style="color:'+(ok?"#b8f02d":"#ff4d6d")+'">'+ac.toFixed(0)+"%</b></span>"+
+      '<span class="num">Rank #'+(rank||"-")+" of "+scope.length+"</span></div></div>";
+  }).join("");
+  $("drawerRoot").innerHTML='<div class="drawerBack" data-act="closedrawer"></div>'+
+    '<aside class="drawer slide">'+
+      '<div style="padding:18px;border-bottom:1px solid var(--line);background:linear-gradient(135deg,'+a.teamColor+'1f,transparent 65%)">'+
+        '<div class="flexb" style="align-items:flex-start"><div>'+
+        '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap"><span class="pill" style="background:'+a.teamColor+"22;color:"+a.teamColor+'">'+esc(a.teamName)+'</span><span class="num mini">'+esc(a.code)+'</span><span class="mini">· shift '+esc(a.shift)+"</span></div>"+
+        '<h2 style="font-size:24px;margin-top:8px">'+esc(a.name)+'</h2><p class="sub">Team Leader: <b style="color:var(--chalk)">'+esc(a.leader)+"</b></p></div>"+
+        '<button class="btn" data-act="closedrawer" style="padding:7px 11px">✕</button></div>'+
+        '<div style="display:flex;align-items:center;gap:16px;margin-top:14px">'+gauge(s,bd.color,s.toFixed(0),"Score",96)+
+        '<div><div class="mini">Overall performance vs targets</div><div style="font-size:18px;font-weight:800;color:'+bd.color+'">'+bd.label+"</div>"+
+        '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px">'+
+        (winners.length?winners.map(function(m){return '<span class="pill" style="background:'+m.color+"1f;color:"+m.color+'">🏆 Top Talent · '+m.label+"</span>";}).join(""):
+        '<span class="pill" style="background:rgba(255,255,255,.06);color:var(--fog)">'+METRICS.filter(function(m){return meets(m.key,a.set[m.key]);}).length+" of 6 metrics on target</span>")+"</div></div></div>"+
+      "</div>"+
+      '<div class="body"><div style="display:grid;gap:11px">'+rows+"</div>"+
+      '<div class="tight" style="padding:13px;margin-top:14px;display:flex;justify-content:space-between;align-items:center"><span class="mini">Total calls in period</span><b class="num" style="font-size:18px;color:var(--mint)">'+nfmt(a.set.calls)+"</b></div>"+
+      '<div class="tipline">Period shown: <b class="num" style="color:var(--chalk)">'+esc(periodShort(currentPeriod()))+"</b> · periods available "+periods().length+"</div></div>"+
+      '<div style="padding:15px;border-top:1px solid var(--line)"><button class="btn primary" data-act="copyagent" data-id="'+a.id+'" style="width:100%;padding:12px">Copy direct agent link</button></div>'+
+    "</aside>";
+  document.body.style.overflow="hidden";
+}
+function closeDrawer(){$("drawerRoot").innerHTML="";UI.openAgent=null;document.body.style.overflow="";}
+
+/* ---------- 12. Agent screen ---------- */
+function viewPersonal(u){
+  return '<div class="wrap" style="max-width:1400px">'+
+    '<section class="panel rise" id="pHero" style="padding:26px"></section>'+
+    '<section class="cards" id="pCards" style="margin-top:18px"></section>'+
+    '<section class="panel" style="padding:20px;margin-top:18px"><div class="flexb"><div><div class="kicker">My Trend</div><h2 id="pTrendTitle"></h2><p class="sub" id="pTrendHint"></p></div>'+
+    '<div style="display:flex;flex-wrap:wrap;gap:5px" id="pTabs"></div></div><div style="position:relative;margin-top:12px" id="pTrend"></div></section>'+
+  "</div>";
+}
+function updatePersonal(){
+  var u=me(),p=currentPeriod(),ps=periods();
+  var raw=DB.agents.filter(function(a){return a.id===u.agentId;})[0];
+  var set=raw?metricOf(raw.id,p):null;
+  if(!raw||!set){
+    $("pHero").innerHTML='<h1>No metrics recorded for your account yet</h1><p class="sub">Once an admin uploads the period sheet, your metrics will appear here.</p>';
+    $("pCards").innerHTML="";return;
+  }
+  var t=teamOf(raw.teamId),s=score(set),bd=band(s),fd=M[UI.metric];
+  var teamIds=DB.agents.filter(function(a){return a.teamId===raw.teamId;}).map(function(a){return a.id;});
+  function bench(ids,pp){var ss=DB.metrics.filter(function(m){return m.period===pp&&ids.indexOf(m.agentId)>=0;});return ss.length?avg(ss):null;}
+  var allIds=DB.agents.map(function(a){return a.id;});
+  var tAvg=bench(teamIds,p),fAvg=bench(allIds,p);
+  $("pHero").innerHTML='<div class="flexb" style="align-items:center">'+
+    "<div><div style=\"display:flex;gap:8px;flex-wrap:wrap\"><span class=\"pill\" style=\"background:"+t.color+"22;color:"+t.color+'">'+esc(t.name)+'</span><span class="pill" style="border:1px solid var(--line);color:var(--fog)">Team Leader: '+esc(leaderName(raw.teamId))+'</span><span class="pill num" style="border:1px solid var(--line);color:var(--fog)">'+esc(raw.code)+"</span></div>"+
+    "<h1>"+esc(raw.name)+'</h1><p class="sub">Your personal metrics for '+esc(periodLabel(p))+" vs approved targets.</p>"+
+    '<div style="display:flex;gap:9px;flex-wrap:wrap;margin-top:14px"><select class="inp" id="periodSel" style="width:auto">'+ps.map(function(x){return '<option value="'+x+'"'+(x===p?" selected":"")+">"+esc(periodLabel(x))+"</option>";}).join("")+"</select>"+
+    '<span class="num mini" style="border:1px solid var(--line);border-radius:12px;padding:9px 13px">'+nfmt(set.calls)+" calls</span></div></div>"+
+    '<div style="display:flex;align-items:center;gap:16px">'+gauge(s,bd.color,s.toFixed(0),"Score",120)+
+    '<div><div class="mini">Your overall rating</div><div style="font-size:22px;font-weight:800;color:'+bd.color+'">'+bd.label+'</div><div class="mini" style="margin-top:4px">'+METRICS.filter(function(m){return meets(m.key,set[m.key]);}).length+" of 6 metrics on target</div></div></div></div>";
+  $("pCards").innerHTML=METRICS.map(function(m,i){
+    var v=set[m.key],ok=meets(m.key,v),a=ach(m.key,v),on=UI.metric===m.key;
+    var lines=[["Me",v,m.color],["Team average",tAvg?tAvg[m.key]:0,"#4d9dff"],["Branch average",fAvg?fAvg[m.key]:0,"#8b7bff"]].map(function(r){
+      return '<div style="display:flex;align-items:center;gap:8px;margin-top:6px"><span class="mini" style="width:74px;flex:none">'+r[0]+'</span>'+
+        '<span class="bar" style="flex:1"><i style="width:'+Math.min(100,(ach(m.key,r[1])/140)*100).toFixed(1)+'%;background:'+r[2]+'"></i></span>'+
+        '<b class="num mini" style="width:62px;text-align:left;color:'+r[2]+'">'+esc(fmt(m.key,r[1]))+"</b></div>";
+    }).join("");
+    return '<button class="panel rise" data-act="metric" data-k="'+m.key+'" style="padding:20px;text-align:left;animation-delay:'+(i*.05)+'s;'+(on?"border-color:"+m.color+"66":"")+'">'+
+      '<div class="flexb" style="align-items:flex-start"><div><span class="num" style="display:block;font-size:13px;font-weight:800;color:'+m.color+'">'+m.label+'</span><span class="mini">'+m.ar+"</span>"+
+      '<div class="num" style="margin-top:12px;font-size:30px;font-weight:900;line-height:1">'+esc(fmt(m.key,v))+"</div>"+
+      '<div class="mini" style="margin-top:6px">Target <span class="num" style="color:var(--chalk)">'+esc(fmt(m.key,m.target))+'</span> · <b class="num" style="color:'+(ok?"#b8f02d":"#ff4d6d")+'">'+esc(delta(m.key,v))+"</b></div></div>"+
+      gauge(a,m.color,a.toFixed(0)+"%","Achieved",86)+"</div><div style=\"margin-top:14px\">"+lines+"</div></button>";
+  }).join("");
+  $("pTabs").innerHTML=METRICS.map(function(m){var on=UI.metric===m.key;
+    return '<button class="chip num" data-act="metric" data-k="'+m.key+'" style="'+(on?"background:"+m.color+"22;color:"+m.color:"")+'">'+m.label+"</button>";}).join("");
+  $("pTrendTitle").textContent="Trend of "+fd.label+" (mine)";
+  $("pTrendHint").textContent=fd.hint;
+  var series=[{id:"me",name:"Me",color:fd.color,primary:true,values:ps.map(function(pp){var x=metricOf(raw.id,pp);return x?x[fd.key]:0;})},
+    {id:"team",name:"Team average",color:"#4d9dff",dashed:true,values:ps.map(function(pp){var b=bench(teamIds,pp);return b?b[fd.key]:0;})},
+    {id:"floor",name:"Branch average",color:"#8b7bff",dashed:true,values:ps.map(function(pp){var b=bench(allIds,pp);return b?b[fd.key]:0;})}];
+  trendChart($("pTrend"),ps,series,fd.target,fd.key);
+}
+
+/* ---------- 13. Admin panel ---------- */
+function viewManage(u){
+  var isAdmin=u.role==="admin";
+  var leaders=DB.users.filter(function(x){return x.role==="leader";});
+  var agentUsers=DB.users.filter(function(x){return x.role==="agent"&&(isAdmin||x.teamId===u.teamId);});
+  if(!isAdmin&&UI.tab!=="agents")UI.tab="agents";
+  var tabs=[["upload","Import Excel sheet",isAdmin],["leaders","Team leader accounts ("+leaders.length+")",isAdmin],["agents","Agent accounts ("+agentUsers.length+")",true],["log","Upload history",isAdmin]].filter(function(t){return t[2];});
+  return '<div class="wrap" style="max-width:1400px">'+
+    '<section class="panel rise" style="padding:26px">'+
+      '<div class="kicker">'+(isAdmin?"Admin Console":"Team Leader Console")+"</div>"+
+      "<h1>"+(isAdmin?"Data & account management":"Your team account management")+"</h1>"+
+      '<p class="sub" style="max-width:820px;font-size:13.5px">'+(isAdmin?
+        "Upload the weekly Excel sheet to extract all numbers automatically (AHT · C-SAT · ABS · Utilization · Quality · QC), and create team leader accounts with a separate password for each leader.":
+        "Create a user for each agent in your team who can see only their own numbers, and manage activation and password resets.")+"</p>"+
+      '<div style="display:grid;gap:11px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));margin-top:18px">'+
+        statBox("Team leaders",String(leaders.length),"#4d9dff")+statBox("Agent accounts",String(agentUsers.length),"#ffb627")+
+        statBox("Agents in sheet",String(DB.agents.length),"#00e5a8")+statBox("Latest period",periods()[periods().length-1]||"—","#8b7bff")+"</div>"+
+    "</section>"+
+    '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:18px;padding:6px;border:1px solid var(--line);border-radius:16px;background:rgba(255,255,255,.03)">'+
+      tabs.map(function(t){return '<button data-act="tab" data-t="'+t[0]+'" style="padding:10px 16px;border-radius:12px;font-size:13px;font-weight:800;'+(UI.tab===t[0]?"background:rgba(0,229,168,.15);color:var(--mint)":"color:var(--fog)")+'">'+t[1]+"</button>";}).join("")+"</div>"+
+    '<div id="tabBody" style="margin-top:16px"></div></div>';
+}
+function wireManage(){
+  var u=me(),isAdmin=u.role==="admin",body=$("tabBody");
+  if(UI.tab==="upload"&&isAdmin)body.innerHTML=tabUpload();
+  else if(UI.tab==="leaders"&&isAdmin)body.innerHTML=tabLeaders();
+  else if(UI.tab==="log"&&isAdmin)body.innerHTML=tabLog();
+  else body.innerHTML=tabAgents(u);
+  var dz=$("dropzone");
+  if(dz){
+    ["dragenter","dragover"].forEach(function(ev){dz.addEventListener(ev,function(e){e.preventDefault();dz.classList.add("on");});});
+    ["dragleave","drop"].forEach(function(ev){dz.addEventListener(ev,function(e){e.preventDefault();dz.classList.remove("on");});});
+    dz.addEventListener("drop",function(e){var f=e.dataTransfer.files&&e.dataTransfer.files[0];if(f)handleFile(f);});
+    dz.addEventListener("click",function(){$("fileInput").click();});
+    $("fileInput").addEventListener("change",function(e){if(e.target.files[0])handleFile(e.target.files[0]);});
+  }
+}
+function tabUpload(){
+  var libOK=typeof XLSX!=="undefined"&&!window.__XLSX_FAILED;
+  return '<div class="grid2 mgGrid">'+
+  '<div class="panel" style="padding:24px"><h2 style="font-size:18px">Upload weekly performance sheet</h2>'+
+  '<p class="sub">The file must include an agent name column; the rest are optional — missing columns are ignored and existing values are updated.</p>'+
+  '<div class="drop" id="dropzone" style="margin-top:16px"><div style="width:56px;height:56px;margin:0 auto;border-radius:18px;display:grid;place-items:center;font-size:24px;background:linear-gradient(135deg,rgba(0,229,168,.25),rgba(77,157,255,.25))">📄</div>'+
+  '<div id="dropName" style="margin-top:12px;font-size:14px;font-weight:800">Drag the Excel file here or click to choose</div>'+
+  '<div class="mini" style="margin-top:4px">xlsx · xls · csv — up to 8 MB</div><input type="file" id="fileInput" accept=".xlsx,.xls,.csv" style="display:none"></div>'+
+  (libOK?"":'<div class="mini" style="margin-top:10px;border:1px solid rgba(255,182,39,.35);background:rgba(255,182,39,.08);color:var(--amber);padding:9px 12px;border-radius:11px">xlsx reader is unavailable offline — you can upload a CSV file with the same columns instead.</div>')+
+  '<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-top:16px">'+
+  '<label><span class="mini" style="display:block;margin-bottom:6px;font-weight:700">Default period</span><input class="inp num" id="upPeriod" value="'+esc(periods()[periods().length-1]||"")+'" style="width:150px"></label>'+
+  '<button class="btn" data-act="template">⬇ Download sheet template</button>'+
+  "</div><div id=\"upResult\"></div></div>"+
+  '<div class="panel" style="padding:24px"><h2 style="font-size:18px">Supported columns</h2>'+
+  '<p class="sub">The system recognizes columns in Arabic or English and converts time (0:15:00) and percentages (0.9 or 90) to the correct values.</p>'+
+  '<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:14px">'+
+  ["Agent Name","Agent ID","Team Leader","Team","Period","AHT (0:15:00)","C-SAT %","ABS %","Utilization %","Quality %","QC %","Calls"].map(function(c){
+    return '<span class="mini" style="border:1px solid var(--line);border-radius:9px;padding:6px 10px;background:rgba(255,255,255,.03)">'+c+"</span>";}).join("")+"</div>"+
+  '<div class="hair" style="margin:18px 0"></div><h2 style="font-size:14px">Import rules</h2>'+
+  '<ul class="sub" style="padding-inline-start:18px;margin-top:8px"><li>Agents are matched by code first, then by name — if missing, they are added automatically.</li>'+
+  "<li>If a team leader name is not an existing team, a new team is created with a distinct color.</li>"+
+  "<li>Repeating the same agent in the same period updates their numbers instead of duplicating them.</li>"+
+  "<li>Any row without an agent name is skipped and listed in the error report.</li></ul></div></div>";
+}
+function tabLeaders(){
+  var leaders=DB.users.filter(function(x){return x.role==="leader";});
+  var admins=DB.users.filter(function(x){return x.role==="admin";});
+  var list=admins.concat(leaders).map(function(x){
+    var t=x.teamId?teamOf(x.teamId):null,size=x.teamId?DB.agents.filter(function(a){return a.teamId===x.teamId;}).length:0;
+    return userRow(x,x.role==="admin"?"#00e5a8":(t?t.color:"#4d9dff"),x.role==="admin"?"Full access — all teams":((t?t.name:"No team")+" · "+size+" Agent · sees own team only"));
+  }).join("");
+  return '<div class="grid2 mgGrid">'+
+    '<form class="panel" id="leaderForm" style="padding:24px;height:fit-content"><h2 style="font-size:18px">Create team leader account</h2>'+
+    '<p class="sub">Each team leader has their own username and password and sees only their team numbers.</p>'+
+    '<div style="display:grid;gap:12px;margin-top:16px">'+
+    field("Team leader name",'<input class="inp" name="fullName" placeholder="e.g.: Ahmed Shokry">')+
+    field("Username",'<input class="inp num" name="username" placeholder="a.shokry">')+
+    field("Password",'<div style="display:flex;gap:8px"><input class="inp num" name="password" placeholder="At least 6 characters"><button type="button" class="btn" data-act="genpw" data-target="password">Generate</button></div>')+
+    field("Team name (optional)",'<input class="inp" name="teamName" placeholder="Falcon Team">')+
+    '<div><span class="mini" style="display:block;margin-bottom:6px;font-weight:700">Team color</span><div style="display:flex;gap:8px">'+
+    TEAM_COLORS.map(function(c,i){return '<label style="cursor:pointer"><input type="radio" name="color" value="'+c+'"'+(i===0?" checked":"")+' style="display:none"><span class="sw" style="display:block;width:30px;height:30px;border-radius:9px;background:'+c+';box-shadow:'+(i===0?"0 0 0 2px #05070e,0 0 0 4px "+c:"none")+'"></span></label>';}).join("")+
+    "</div></div></div>"+
+    '<button class="btn primary" type="submit" style="width:100%;margin-top:18px;padding:12px">Create account & team</button></form>'+
+    '<div class="panel" style="padding:24px"><h2 style="font-size:18px">Current accounts</h2><p class="sub">'+admins.length+" admin(s) · "+leaders.length+" team leader(s) · "+DB.teams.length+' team(s)</p><div style="display:grid;gap:10px;margin-top:16px">'+list+"</div></div></div>";
+}
+function tabAgents(u){
+  var isAdmin=u.role==="admin";
+  var agentUsers=DB.users.filter(function(x){return x.role==="agent"&&(isAdmin||x.teamId===u.teamId);});
+  var pool=DB.agents.filter(function(a){
+    if(!isAdmin&&a.teamId!==u.teamId)return false;
+    return !DB.users.some(function(x){return x.agentId===a.id;});
+  });
+  var list=agentUsers.length?agentUsers.map(function(x){
+    var ag=DB.agents.filter(function(a){return a.id===x.agentId;})[0];
+    return userRow(x,"#ffb627",(ag?ag.name:"—")+" · "+(x.teamId?teamOf(x.teamId).name:"No team"));
+  }).join(""):'<div class="tight mini" style="padding:26px;text-align:center">No agent accounts yet — start by creating the first user from the form.</div>';
+  return '<div class="grid2 mgGrid">'+
+    '<form class="panel" id="agentForm" style="padding:24px;height:fit-content"><h2 style="font-size:18px">Create agent user</h2>'+
+    '<p class="sub">'+(isAdmin?"Admins can create an account for any agent — and the agent sees only their own numbers.":"The agent will see only their personal numbers against targets, without their colleague data.")+"</p>"+
+    '<div style="display:grid;gap:12px;margin-top:16px">'+
+    field("Agent",'<select class="inp" name="agentId" id="agentPick"><option value="">— Select agent —</option>'+
+      pool.map(function(a){return '<option value="'+a.id+'" data-code="'+esc(a.code)+'">'+esc(a.name)+" · "+esc(a.code)+" · "+esc(teamOf(a.teamId).name)+"</option>";}).join("")+"</select>")+
+    field("Username",'<input class="inp num" name="username" placeholder="ag-1042">')+
+    field("Password",'<div style="display:flex;gap:8px"><input class="inp num" name="password" placeholder="At least 6 characters"><button type="button" class="btn" data-act="genpw" data-target="password">Generate</button></div>')+
+    "</div>"+
+    '<button class="btn primary" type="submit" style="width:100%;margin-top:18px;padding:12px"'+(pool.length?"":" disabled")+">"+(pool.length?"Create agent account":"All agents already have accounts")+"</button></form>"+
+    '<div class="panel" style="padding:24px"><h2 style="font-size:18px">Agent accounts ('+agentUsers.length+")</h2>"+
+    '<p class="sub">Reset password, disable or delete the account.</p>'+
+    '<div style="display:grid;gap:10px;margin-top:16px;max-height:560px;overflow:auto;padding-inline-end:4px">'+list+"</div></div></div>";
+}
+function tabLog(){
+  var rows=DB.uploads.slice().reverse().map(function(u){
+    return "<tr><td><b>"+esc(u.filename)+'</b></td><td class="num" style="color:var(--mint)">'+esc(periodLabel(u.period))+'</td><td class="num">'+u.rowCount+'</td><td class="num" style="color:var(--azure)">'+u.newAgents+'</td><td class="num" style="color:var(--rose)">'+u.skipped+'</td><td class="mini">'+esc(u.by)+'</td><td class="num mini">'+esc(String(u.at).slice(0,16).replace("T"," "))+"</td></tr>";
+  }).join("");
+  return '<div class="panel" style="padding:24px"><h2 style="font-size:18px">Upload history</h2><p class="sub">Recent imports performed on the system.</p>'+
+    '<div class="scroller"><table style="min-width:720px"><thead><tr><th>File</th><th>Period</th><th>Rows</th><th>New agents</th><th>Skipped</th><th>By</th><th>Date</th></tr></thead><tbody>'+
+    (rows||'<tr><td colspan="7" class="mini" style="padding:30px;text-align:center">No uploads yet.</td></tr>')+"</tbody></table></div></div>";
+}
+function field(label,inner){return '<label><span class="mini" style="display:block;margin-bottom:6px;font-weight:700">'+label+"</span>"+inner+"</label>";}
+function userRow(x,color,caption){
+  var self=me().id===x.id;
+  return '<div class="tight" style="padding:13px"><div class="flexb">'+
+    '<div style="display:flex;align-items:center;gap:11px;min-width:0"><span style="width:34px;height:34px;border-radius:11px;display:grid;place-items:center;font-weight:800;background:'+color+"1f;color:"+color+'">'+esc(x.fullName.charAt(0))+"</span>"+
+    '<div style="min-width:0"><div style="display:flex;align-items:center;gap:8px"><b style="font-size:13.5px">'+esc(x.fullName)+'</b><span class="pill" style="background:'+(x.active?"rgba(184,240,45,.14);color:#b8f02d":"rgba(255,77,109,.14);color:#ff4d6d")+'">'+(x.active?"Active":"Disabled")+"</span></div>"+
+    '<div class="num mini">'+esc(x.username)+" · "+esc(caption)+"</div></div></div>"+
+    '<div style="display:flex;gap:6px;flex-wrap:wrap">'+
+      '<button class="btn" data-act="pw" data-id="'+x.id+'" style="padding:6px 10px;font-size:11.5px">New password</button>'+
+      '<button class="btn" data-act="toggle" data-id="'+x.id+'" style="padding:6px 10px;font-size:11.5px"'+(self?" disabled":"")+">"+(x.active?"Disable":"Enable")+"</button>"+
+      '<button class="btn" data-act="del" data-id="'+x.id+'" style="padding:6px 10px;font-size:11.5px"'+(self?" disabled":"")+">Delete</button>"+
+    "</div></div></div>";
+}
+
+/* ---------- 14. Import / export ---------- */
+var ALIAS={
+  name:["agent name","employee name","name","agent","اسم الموظف","الموظف","الاسم"],
+  code:["agent id","employee id","agent code","code","id","كود الموظف","الكود","رقم الموظف"],
+  leader:["team leader","leader","supervisor","tl","التيم ليدر","قائد الفريق","المشرف","الليدر"],
+  team:["team","group","الفريق","المجموعة","الجروب"],
+  period:["period","week","month","الفترة","الأسبوع","الشهر"],
+  aht:["aht","avg handle time","average handle time","متوسط المكالمة","متوسط زمن المكالمة","زمن المكالمة"],
+  csat:["csat","c-sat","c sat","customer satisfaction","رضا العملاء","الرضا"],
+  abs:["absenteeism","absence","abs %","abs","الغياب","نسبة الغياب"],
+  utilization:["utilization","utilisation","util","الاستغلال","معدل الاستغلال"],
+  quality:["quality","qa","الجودة","جودة الأداء"],
+  qc:["qc score","qc %","qc","تقييم الجودة","مراقب الجودة","كيو سي"],
+  calls:["handled calls","calls","handled","contacts","عدد المكالمات","المكالمات"]
+};
+function normHeader(h){return String(h==null?"":h).replace(/[_\-.]/g," ").replace(/\s+/g," ").trim().toLowerCase();}
+function matchHeader(h){
+  var exact=[],partial=[];
+  Object.keys(ALIAS).forEach(function(f){
+    var list=ALIAS[f];
+    if(list.some(function(a){return h===a;}))exact.push(f);
+    else if(list.some(function(a){return a.length>2&&h.indexOf(a)>=0;}))partial.push(f);
+  });
+  return exact.concat(partial);
+}
+function parseAht(v){
+  if(v==null||v==="")return null;
+  if(v instanceof Date)return v.getUTCHours()*3600+v.getUTCMinutes()*60+v.getUTCSeconds();
+  if(typeof v==="number"){if(!isFinite(v))return null;if(v>0&&v<1)return Math.round(v*86400);if(v>0&&v<60)return Math.round(v*60);return Math.round(v);}
+  var t=String(v).trim();if(!t)return null;
+  if(/^\d+(\.\d+)?$/.test(t))return parseAht(Number(t));
+  var p=t.split(":").map(function(x){return Number(x.trim());});
+  if(p.some(function(x){return isNaN(x);}))return null;
+  if(p.length===3)return p[0]*3600+p[1]*60+p[2];
+  if(p.length===2)return p[0]*60+p[1];
+  return null;
+}
+function parsePct(v){
+  if(v==null||v==="")return null;
+  if(typeof v==="number"){if(!isFinite(v))return null;return v>0&&v<=1?+(v*100).toFixed(2):+v.toFixed(2);}
+  var t=String(v).replace("%","").replace(/,/g,"").trim();if(!t)return null;
+  var n=Number(t);if(!isFinite(n))return null;
+  return n>0&&n<=1?+(n*100).toFixed(2):+n.toFixed(2);
+}
+function parseInt2(v){if(v==null||v==="")return null;var n=Number(String(v).replace(/[,\s]/g,""));return isFinite(n)?Math.round(n):null;}
+function normPeriod(v,fb){
+  if(v==null||v==="")return fb;
+  if(v instanceof Date)return v.toISOString().slice(0,7);
+  var t=String(v).trim(),m=/^(\d{4})\s*[-_/ ]?\s*w(eek)?\s*(\d{1,2})$/i.exec(t);
+  if(m)return m[1]+"-W"+pad2(Number(m[3]));
+  var w=/^w\s*(\d{1,2})$/i.exec(t);
+  if(w)return new Date().getFullYear()+"-W"+pad2(Number(w[1]));
+  return t;
+}
+function rowsToMatrix(matrix,fallback){
+  var out={rows:[],errors:[],mapped:[],headers:(matrix[0]||[]).map(function(h){return String(h==null?"":h);})};
+  if(!matrix.length){out.errors.push({row:0,msg:"Sheet is empty"});return out;}
+  var head=matrix[0].map(normHeader),map={},used={};
+  head.forEach(function(h,i){
+    var f=matchHeader(h).filter(function(c){return !used[c];})[0];
+    if(f){map[i]=f;used[f]=1;}
+  });
+  out.mapped=Object.keys(map).map(function(k){return map[k];});
+  if(out.mapped.indexOf("name")<0){out.errors.push({row:1,msg:"Agent name column not found"});return out;}
+  for(var i=1;i<matrix.length;i++){
+    var raw=matrix[i];if(!raw)continue;
+    var empty=raw.every(function(c){return c==null||String(c).trim()==="";});if(empty)continue;
+    var rec={};Object.keys(map).forEach(function(ci){rec[map[ci]]=raw[ci];});
+    var nm=String(rec.name==null?"":rec.name).trim();
+    if(!nm){out.errors.push({row:i+1,msg:"Row without agent name"});continue;}
+    out.rows.push({name:nm,code:rec.code?String(rec.code).trim():null,leader:rec.leader?String(rec.leader).trim():null,
+      team:rec.team?String(rec.team).trim():null,period:normPeriod(rec.period,fallback),
+      aht:parseAht(rec.aht),csat:parsePct(rec.csat),abs:parsePct(rec.abs),utilization:parsePct(rec.utilization),
+      quality:parsePct(rec.quality),qc:parsePct(rec.qc),calls:parseInt2(rec.calls),row:i+1});
+  }
+  return out;
+}
+function parseCSV(text){
+  var rows=[],row=[],cur="",q=false;
+  for(var i=0;i<text.length;i++){
+    var c=text[i];
+    if(q){ if(c==='"'){ if(text[i+1]==='"'){cur+='"';i++;} else q=false; } else cur+=c; }
+    else if(c==='"')q=true;
+    else if(c===","||c===";"){row.push(cur);cur="";}
+    else if(c==="\n"){row.push(cur);rows.push(row);row=[];cur="";}
+    else if(c!=="\r")cur+=c;
+  }
+  if(cur!==""||row.length){row.push(cur);rows.push(row);}
+  return rows;
+}
+function handleFile(file){
+  var u=me();
+  if(u.role!=="admin"){toast("Excel uploads are for admins only",true);return;}
+  if($("dropName"))$("dropName").textContent=file.name;
+  var fb=($("upPeriod")&&$("upPeriod").value.trim())||periods()[periods().length-1]||recentPeriods(1)[0];
+  var isCSV=/\.csv$/i.test(file.name)||file.type==="text/csv";
+  var reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      var matrix;
+      if(isCSV||typeof XLSX==="undefined"||window.__XLSX_FAILED){
+        if(!isCSV&&(typeof XLSX==="undefined"||window.__XLSX_FAILED)){toast("xlsx library unavailable — use a CSV file",true);return;}
+        matrix=parseCSV(String(e.target.result));
+      }else{
+        var wb=XLSX.read(new Uint8Array(e.target.result),{type:"array",cellDates:true});
+        var sh=wb.Sheets[wb.SheetNames[0]];
+        matrix=XLSX.utils.sheet_to_json(sh,{header:1,blankrows:false,defval:null});
+      }
+      var parsed=rowsToMatrix(matrix,fb);
+      if(!parsed.rows.length){showUploadResult({error:parsed.errors[0]?parsed.errors[0].msg:"No valid rows found"});return;}
+      showUploadResult(importRows(parsed,file.name,fb));
+    }catch(err){showUploadResult({error:"Could not read the file — check the format"});}
+  };
+  if(isCSV||typeof XLSX==="undefined"||window.__XLSX_FAILED)reader.readAsText(file,"utf-8");
+  else reader.readAsArrayBuffer(file);
+}
+function importRows(parsed,filename,fallback){
+  var u=me(),newAgents=0,newTeams=0,processed=0,errors=parsed.errors.slice(),periodsTouched={};
+  parsed.rows.forEach(function(r){
+    var teamId=null,leaderUserId=null;
+    if(r.leader){
+      var lu=DB.users.filter(function(x){return x.role==="leader"&&norm(x.fullName)===norm(r.leader);})[0];
+      if(lu){leaderUserId=lu.id;teamId=lu.teamId;}
+    }
+    if(!teamId&&r.team){var t1=DB.teams.filter(function(t){return norm(t.name)===norm(r.team)||norm(t.codename)===norm(r.team);})[0];if(t1)teamId=t1.id;}
+    if(!teamId&&r.leader){var t2=DB.teams.filter(function(t){return norm(t.codename)===norm(r.leader)||norm(t.name)===norm(r.leader);})[0];if(t2)teamId=t2.id;}
+    if(!teamId){
+      var label=r.team||r.leader;
+      if(!label){errors.push({row:r.row,msg:"No team or team leader for agent "+r.name});return;}
+      var tid=DB.seq++;
+      DB.teams.push({id:tid,name:r.team||("Team "+r.leader),codename:r.leader||r.team,color:TEAM_COLORS[(DB.teams.length)%TEAM_COLORS.length],leaderUserId:leaderUserId});
+      teamId=tid;newTeams++;
+    }
+    var ag=null;
+    if(r.code)ag=DB.agents.filter(function(a){return norm(a.code)===norm(r.code);})[0];
+    if(!ag)ag=DB.agents.filter(function(a){return norm(a.name)===norm(r.name);})[0];
+    if(!ag){
+      var code=r.code||("AG-"+(2000+DB.agents.length));
+      ag={id:DB.seq++,name:r.name,code:code,teamId:teamId,leaderUserId:leaderUserId,shift:"Morning"};
+      DB.agents.push(ag);newAgents++;
+    }else{ag.teamId=teamId;if(leaderUserId)ag.leaderUserId=leaderUserId;}
+    var per=r.period||fallback;periodsTouched[per]=1;
+    var ex=DB.metrics.filter(function(m){return m.agentId===ag.id&&m.period===per;})[0];
+    if(ex){["aht","csat","abs","utilization","quality","qc","calls"].forEach(function(k){if(r[k]!=null)ex[k]=r[k];});}
+    else DB.metrics.push({agentId:ag.id,period:per,aht:r.aht||0,csat:r.csat||0,abs:r.abs||0,utilization:r.utilization||0,quality:r.quality||0,qc:r.qc||0,calls:r.calls||0});
+    processed++;
+  });
+  var per=Object.keys(periodsTouched).sort();
+  DB.uploads.push({id:DB.seq++,filename:filename,period:per.length===1?per[0]:fallback,rowCount:processed,newAgents:newAgents,skipped:errors.length,by:u.fullName,at:new Date().toISOString()});
+  save();
+  return {filename:filename,periods:per,processed:processed,newAgents:newAgents,newTeams:newTeams,errors:errors,mapped:parsed.mapped};
+}
+function showUploadResult(res){
+  var box=$("upResult");if(!box)return;
+  if(res.error){box.innerHTML='<div style="margin-top:16px;border:1px solid rgba(255,77,109,.4);background:rgba(255,77,109,.08);color:var(--rose);padding:14px;border-radius:14px;font-size:13px">'+esc(res.error)+"</div>";toast(res.error,true);return;}
+  box.innerHTML='<div class="pop" style="margin-top:16px;border:1px solid rgba(0,229,168,.3);background:rgba(0,229,168,.06);padding:16px;border-radius:16px">'+
+    '<b style="color:var(--mint);font-size:13.5px">Imported «'+esc(res.filename)+"» successfully</b>"+
+    '<div style="display:grid;gap:9px;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));margin-top:12px">'+
+    statBox("Rows processed",String(res.processed),"#00e5a8")+statBox("New agents",String(res.newAgents),"#4d9dff")+
+    statBox("New teams",String(res.newTeams),"#ffb627")+statBox("Rows skipped",String(res.errors.length),"#ff4d6d")+"</div>"+
+    '<div class="num mini" style="margin-top:11px">Periods: '+esc(res.periods.join(" · "))+" — recognized columns: "+esc(res.mapped.join(", "))+"</div>"+
+    (res.errors.length?'<ul class="mini" style="color:var(--rose);margin-top:8px;padding-inline-start:18px">'+res.errors.slice(0,8).map(function(e){return "<li>Row "+e.row+": "+esc(e.msg)+"</li>";}).join("")+"</ul>":"")+
+    '<button class="btn primary" data-act="go" data-v="dashboard" style="margin-top:12px">View report with new numbers</button></div>';
+  toast("Imported "+res.processed+" rows successfully");
+}
+function exportCSV(){
+  var list=filtered(scopedAgents()),p=currentPeriod();
+  var head=["Agent Name","Agent ID","Team","Team Leader","Period","AHT","C-SAT %","ABS %","Utilization %","Quality %","QC %","Calls","Score","Targets Met"];
+  var lines=[head.join(",")];
+  list.forEach(function(a){
+    var met=METRICS.filter(function(m){return meets(m.key,a.set[m.key]);}).length;
+    lines.push([a.name,a.code,a.teamName,a.leader,p,fmtTime(a.set.aht),a.set.csat,a.set.abs,a.set.utilization,a.set.quality,a.set.qc,a.set.calls,score(a.set).toFixed(1),met+"/6"]
+      .map(function(v){return '"'+String(v).replace(/"/g,'""')+'"';}).join(","));
+  });
+  download("OFF_Queue_Report_"+p+".csv",lines.join("\n"));
+  toast("Exported "+list.length+" rows");
+}
+function downloadTemplate(){
+  var head=["Agent Name","Agent ID","Team Leader","Team","Period","AHT","C-SAT %","ABS %","Utilization %","Quality %","QC %","Calls"];
+  var samples=[["Ahmed Sayed Hassan","AG-1042","Mahmoud Abdelrahman","Falcon Team","2026-W06","0:14:32",93.5,4.2,88.4,92,89,412],
+    ["Mona Khaled Ibrahim","AG-1043","Mahmoud Abdelrahman","Falcon Team","2026-W06","0:16:10",88.1,7.4,81.2,87.5,83,366],
+    ["Youssef Emad Eldin","AG-1044","Sara Fathy","Nova Team","2026-W06","0:13:58",95.2,2.8,91.6,94,92,455]];
+  if(typeof XLSX!=="undefined"&&!window.__XLSX_FAILED){
+    var ws=XLSX.utils.aoa_to_sheet([head].concat(samples)),wb=XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb,ws,"OFF Queue");
+    XLSX.writeFile(wb,"OFF_Queue_Template.xlsx");
+  }else{
+    download("OFF_Queue_Template.csv",[head.join(",")].concat(samples.map(function(r){return r.join(",");})).join("\n"));
+  }
+  toast("Template downloaded");
+}
+
+/* ---------- 15. Events ---------- */
+document.addEventListener("click",function(e){
+  var el=e.target.closest("[data-act]");if(!el)return;
+  var act=el.getAttribute("data-act"),u=me();
+  if(act==="demo"){var f=$("loginForm");f.elements.u.value=el.getAttribute("data-u");f.elements.p.value=el.getAttribute("data-p");$("loginErr").innerHTML="";return;}
+  if(act==="logout"){logout();return;}
+  if(act==="go"){UI.view=el.getAttribute("data-v");closeDrawer();writeURL();render();window.scrollTo({top:0,behavior:"smooth"});return;}
+  if(act==="metric"){setUI({metric:el.getAttribute("data-k"),sort:el.getAttribute("data-k"),dir:"desc"},true);if(me().role==="agent")updatePersonal();return;}
+  if(act==="team"){var id=el.getAttribute("data-id");setUI({teamId:id?Number(id):null},true);return;}
+  if(act==="status"){setUI({status:el.getAttribute("data-s")},true);return;}
+  if(act==="sort"){var k=el.getAttribute("data-k");setUI({sort:k,dir:UI.sort===k&&UI.dir==="desc"?"asc":"desc"},true);return;}
+  if(act==="clearq"){UI.query="";var si=$("search");if(si)si.value="";setUI({query:""},true);return;}
+  if(act==="clearfilters"){UI.query="";UI.teamId=null;UI.status="all";UI.sort="score";UI.dir="desc";UI.metric="csat";var s2=$("search");if(s2)s2.value="";writeURL();render();return;}
+  if(act==="open"){openDrawer(Number(el.getAttribute("data-id")));return;}
+  if(act==="closedrawer"){closeDrawer();return;}
+  if(act==="copyagent"){
+    e.stopPropagation();
+    var aid=Number(el.getAttribute("data-id")),ag=DB.agents.filter(function(a){return a.id===aid;})[0];
+    var url=location.origin+location.pathname+"?agent="+encodeURIComponent(ag.code)+"&period="+currentPeriod();
+    if(location.protocol==="file:")url=location.href.split("?")[0]+"?agent="+encodeURIComponent(ag.code);
+    copy(url,"Link copied for "+ag.name);return;
+  }
+  if(act==="copyview"){
+    var url2=location.origin+location.pathname+"?"+new URLSearchParams((function(){
+      var o={};if(UI.query)o.agent=UI.query;if(UI.period)o.period=UI.period;if(UI.teamId)o.team=UI.teamId;if(UI.metric!=="csat")o.metric=UI.metric;return o;})()).toString();
+    if(location.protocol==="file:")url2=location.href;
+    copy(url2,"Current view link copied");return;
+  }
+  if(act==="export"){exportCSV();return;}
+  if(act==="template"){downloadTemplate();return;}
+  if(act==="reset"){if(confirm("Reset all data and accounts to the original state?"))resetData();return;}
+  if(act==="tab"){UI.tab=el.getAttribute("data-t");render();return;}
+  if(act==="genpw"){
+    var form=el.closest("form"),inp=form.querySelector("[name='password']");inp.value=randPass();inp.focus();return;
+  }
+  if(act==="toggle"){
+    var t1=DB.users.filter(function(x){return x.id===Number(el.getAttribute("data-id"));})[0];
+    if(t1.id===u.id){toast("You can't disable your own account",true);return;}
+    t1.active=!t1.active;save();toast(t1.active?"Account enabled":"Account disabled");render();return;
+  }
+  if(act==="pw"){
+    var t2=DB.users.filter(function(x){return x.id===Number(el.getAttribute("data-id"));})[0];
+    var np=prompt("New password for "+t2.fullName+" (at least 6 characters)",randPass());
+    if(np==null)return;
+    if(np.length<6){toast("Password is too short",true);return;}
+    t2.password=np;save();toast("Password updated for "+t2.fullName);return;
+  }
+  if(act==="del"){
+    var t3=DB.users.filter(function(x){return x.id===Number(el.getAttribute("data-id"));})[0];
+    if(t3.id===u.id){toast("You can't delete your own account",true);return;}
+    if(t3.role==="admin"&&DB.users.filter(function(x){return x.role==="admin";}).length<2){toast("Can't delete the last admin account",true);return;}
+    if(!confirm("Confirm deleting account "+t3.fullName+"?"))return;
+    DB.users=DB.users.filter(function(x){return x.id!==t3.id;});
+    if(t3.role==="leader")DB.teams.forEach(function(t){if(t.leaderUserId===t3.id)t.leaderUserId=null;});
+    save();toast("Account deleted: "+t3.fullName);render();return;
+  }
+});
+document.addEventListener("input",function(e){
+  if(e.target.id==="search"){
+    UI.query=e.target.value;
+    clearTimeout(window.__st);
+    window.__st=setTimeout(function(){writeURL();updateDashboard();},170);
+  }
+});
+document.addEventListener("change",function(e){
+  if(e.target.id==="periodSel"){UI.period=e.target.value;writeURL();var uu=me();if(uu.role==="agent")updatePersonal();else updateDashboard();}
+  if(e.target.name==="color"){
+    e.target.closest("div").querySelectorAll(".sw").forEach(function(s){s.style.boxShadow="none";});
+    e.target.parentNode.querySelector(".sw").style.boxShadow="0 0 0 2px #05070e,0 0 0 4px "+e.target.value;
+  }
+  if(e.target.id==="agentPick"){
+    var op=e.target.selectedOptions[0],code=op?op.getAttribute("data-code"):null;
+    var f=e.target.closest("form");if(code)f.querySelector("[name='username']").value=code.toLowerCase();
+  }
+});
+document.addEventListener("submit",function(e){
+  var f=e.target,u=me();
+  if(f.id==="leaderForm"){
+    e.preventDefault();
+    var fullName=f.elements.fullName.value.trim(),username=f.elements.username.value.trim().toLowerCase(),password=f.elements.password.value,teamName=f.elements.teamName.value.trim();
+    var err=validateUser(username,password,fullName);if(err){toast(err,true);return;}
+    var uid=DB.seq++,tid=DB.seq++;
+    DB.users.push({id:uid,username:username,password:password,role:"leader",fullName:fullName,teamId:tid,agentId:null,active:true,lastLogin:null});
+    var picked=f.querySelector("[name='color']:checked");
+    DB.teams.push({id:tid,name:teamName||("Team "+fullName),codename:fullName.split(" ")[0],color:picked?picked.value:TEAM_COLORS[0],leaderUserId:uid});
+    save();toast("Account created: "+fullName+" and team");render();return;
+  }
+  if(f.id==="agentForm"){
+    e.preventDefault();
+    var aid=Number(f.elements.agentId.value),un=f.elements.username.value.trim().toLowerCase(),pw=f.elements.password.value;
+    if(!aid){toast("Select an agent first",true);return;}
+    if(!/^[a-z0-9._-]{3,32}$/.test(un)){toast("Username: lowercase letters/numbers, 3 to 32 characters",true);return;}
+    if(pw.length<6){toast("Password must be at least 6 characters",true);return;}
+    if(DB.users.some(function(x){return x.username.toLowerCase()===un;})){toast("Username already taken",true);return;}
+    var ag=DB.agents.filter(function(a){return a.id===aid;})[0];
+    DB.users.push({id:DB.seq++,username:un,password:pw,role:"agent",fullName:ag.name,teamId:ag.teamId,agentId:ag.id,active:true,lastLogin:null});
+    save();toast("Agent account created: "+ag.name);render();return;
+  }
+});
+function validateUser(username,password,fullName){
+  if(fullName!=null&&!fullName)return "Name is required";
+  if(!/^[a-z0-9._-]{3,32}$/.test(username))return "Username: lowercase letters/numbers, 3 to 32 characters";
+  if(password.length<6)return "Password must be at least 6 characters";
+  if(DB.users.some(function(x){return x.username.toLowerCase()===username;}))return "Username already taken";
+  return null;
+}
+function copy(text,msg){
+  function fallback(){try{window.prompt("Copy the link:",text);}catch(e){toast(text);}}
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(function(){toast(msg);},fallback);}
+  else fallback();
+}
+document.addEventListener("keydown",function(e){
+  if(e.key==="Escape")closeDrawer();
+  if(e.key==="/"&&document.activeElement&&document.activeElement.tagName!=="INPUT"&&me()&&me().role!=="agent"){
+    var s=$("search");if(s){e.preventDefault();s.focus();s.select();}
+  }
+});
+window.addEventListener("popstate",function(){readURL();render();});
+
+/* ---------- 16. Startup ---------- */
+DB=load();
+try{var sid=sessionStorage.getItem(KEY+".s");if(sid)SESSION={id:Number(sid)};}catch(e){}
+readURL();
+if(UI.query){
+  var q=norm(UI.query);
+  var hit=DB.agents.filter(function(a){return norm(a.code)===q||norm(a.name)===q;})[0];
+  if(hit)UI.openAgent=hit.id;
+}
+render();
+if(UI.openAgent&&me()&&me().role!=="agent")openDrawer(UI.openAgent);
+</script>
+</body>
+</html>
